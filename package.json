@@ -1,0 +1,14 @@
+{
+	"name": "flpjck",
+	"version": "1.0.0",
+	"description": "FL Studio batch export tool",
+	"main": "main.js",
+	"scripts": {
+		"start": "electron ."
+	},
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"electron": "^7.1.1"
+	}
+}
