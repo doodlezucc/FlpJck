@@ -1,31 +1,30 @@
-const el = require('electron');
-
+const el = require("electron");
 
 function createWindow() {
-	// var menu = el.Menu.buildFromTemplate([
-	// 	{
-	// 		label: 'Menu',
-	// 		submenu: [
-	// 			{
-	// 				label: 'Exit',
-	// 				click() {
-	// 					app.quit();
-	// 				}
-	// 			}
-	// 		]
-	// 	}
-	// ]);
-	// el.Menu.setApplicationMenu(menu);
+  // var menu = el.Menu.buildFromTemplate([
+  // 	{
+  // 		label: 'Menu',
+  // 		submenu: [
+  // 			{
+  // 				label: 'Exit',
+  // 				click() {
+  // 					app.quit();
+  // 				}
+  // 			}
+  // 		]
+  // 	}
+  // ]);
+  // el.Menu.setApplicationMenu(menu);
 
-	let win = new el.BrowserWindow({
-		width: 800,
-		height: 600,
-		webPreferences: {
-			nodeIntegration: true
-		}
-	});
+  let win = new el.BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  });
 
-	win.loadFile('index.html');
+  win.loadFile("app/index.html");
 }
 
-el.app.on('ready', createWindow);
+el.app.on("ready", createWindow);
