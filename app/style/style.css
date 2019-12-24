@@ -4,9 +4,9 @@
 }
 
 body {
-  --background: #356;
-  --light-color: aquamarine;
-  --dark-gray: #333;
+  --background: hsl(190, 40%, 30%);
+  --color-light: hsl(150, 100%, 75%);
+  --gray-dark: #333;
 
   background: var(--background);
   color: white;
@@ -23,27 +23,30 @@ button {
   border-radius: 5px;
   padding: 3px;
   border: none;
-  background: var(--light-color);
-  color: var(--dark-gray);
+  background: var(--color-light);
+  color: var(--gray-dark);
   font: inherit;
   text-overflow: ellipsis;
+  cursor: pointer;
+}
+button:enabled:hover {
+  background: white;
 }
 
+/*
+    INPUT
+*/
 input {
   outline: none;
   border-radius: 5px;
   padding: 3px;
   border: none;
-  background: var(--dark-gray);
+  background: var(--gray-dark);
   color: inherit;
   font: inherit;
-  text-overflow: ellipsis;
-}
-input:focus {
-  text-overflow: clip;
 }
 input:focus::selection {
-  background: var(--light-color);
+  background: var(--color-light);
   border-radius: 2px;
 }
 
@@ -53,11 +56,13 @@ input:focus::selection {
 .setting {
   display: inline-flex;
   align-items: baseline;
+  font-family: monospace;
 }
 
 .setting input {
   border-radius: 5px 0 0 5px;
   margin-left: 5px;
+  width: 250px;
 }
 
 .setting button {
