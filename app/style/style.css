@@ -4,7 +4,11 @@
 }
 
 body {
-  background: #333;
+  --background: #356;
+  --light-color: aquamarine;
+  --dark-gray: #333;
+
+  background: var(--background);
   color: white;
   font-family: "Rubik", sans-serif;
   margin: 10px;
@@ -12,4 +16,50 @@ body {
 
 h1 {
   margin: 0;
+}
+
+button {
+  outline: none;
+  border-radius: 5px;
+  padding: 3px;
+  border: none;
+  background: var(--light-color);
+  color: var(--dark-gray);
+  font: inherit;
+  text-overflow: ellipsis;
+}
+
+input {
+  outline: none;
+  border-radius: 5px;
+  padding: 3px;
+  border: none;
+  background: var(--dark-gray);
+  color: inherit;
+  font: inherit;
+  text-overflow: ellipsis;
+}
+input:focus {
+  text-overflow: clip;
+}
+input:focus::selection {
+  background: var(--light-color);
+  border-radius: 2px;
+}
+
+/*
+    SETTINGS
+*/
+.setting {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.setting input {
+  border-radius: 5px 0 0 5px;
+  margin-left: 5px;
+}
+
+.setting button {
+  border-radius: 0 5px 5px 0;
 }

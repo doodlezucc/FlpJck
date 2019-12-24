@@ -6,15 +6,18 @@
 	<title>FlpJck</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'">
 	<link rel="stylesheet" href="style/style.css">
 </head>
 
 <body>
-	<!--[if lt IE 7]>
-			<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
-		<![endif]-->
-
 	<h1>FlpJck</h1>
+
+	<div class="setting">
+		<span>FL executable:</span>
+		<input id="execPath" type="text" value="C:/Program Files/Image-Line/FL Studio 20/FL64.exe">
+		<button onclick="selectExecutable()">Select</button>
+	</div>
 
 	<script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
 
