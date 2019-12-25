@@ -20,11 +20,12 @@ function createWindow() {
   // el.Menu.setApplicationMenu(menu);
 
   let win = new el.BrowserWindow({
-    width: 800,
+    width: 500,
     height: 600,
     webPreferences: {
       nodeIntegration: true
-    }
+    },
+    alwaysOnTop: true // for debug purposes
   });
 
   win.loadFile("app/index.html");

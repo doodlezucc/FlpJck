@@ -7,6 +7,7 @@ body {
   --background: hsl(190, 40%, 30%);
   --color-light: hsl(150, 100%, 75%);
   --gray-dark: #333;
+  --gray: #555;
 
   background: var(--background);
   color: white;
@@ -44,6 +45,9 @@ input {
   background: var(--gray-dark);
   color: inherit;
   font: inherit;
+}
+input:focus {
+  background: var(--gray);
 }
 input:focus::selection {
   background: var(--color-light);
