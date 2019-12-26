@@ -74,6 +74,10 @@ input:read-only {
   border: 1px dashed white;
 }
 
+.setting {
+  margin: 2px;
+}
+
 .setting.single-button {
   display: inline-flex;
   align-items: baseline;
@@ -87,14 +91,22 @@ input:read-only {
   border-radius: 0 5px 5px 0;
 }
 
-.directory {
-  margin-left: 10px;
+.directories {
+  padding: 5px 20px;
 }
+
 .directory:hover button {
   color: white;
 }
 .directory input {
   min-width: 50px;
+}
+
+.directory.loading {
+  opacity: 50%;
+}
+.directory.loading button {
+  display: none;
 }
 
 button.remove {
@@ -146,12 +158,10 @@ button.remove:hover {
   background-color: var(--gray);
   border-collapse: separate;
 }
-
 .file-container th, td {
   padding: 5px;
   border-spacing: 0 2px;
 }
-
 .file-container tr {
   background-color: var(--gray-dark);
 }
@@ -163,17 +173,10 @@ button.remove:hover {
   background-color: var(--color-dark);
 }
 
-.file h2 {
-  font-size: medium;
-  font-weight: normal;
-  margin: 0;
-  padding: 5px;
-  width: 100%;
-}
-
-.file td:nth-child(2) {
-  direction: rtl;
-  text-align: left;
+.file td {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /*

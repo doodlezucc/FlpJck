@@ -20,8 +20,8 @@ function createWindow() {
   // el.Menu.setApplicationMenu(menu);
 
   let win = new el.BrowserWindow({
-    width: 500,
-    height: 600,
+    width: 600,
+    height: 400,
     webPreferences: {
       nodeIntegration: true
     },
