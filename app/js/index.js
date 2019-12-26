@@ -16,6 +16,65 @@ $(document).ready(function() {
 	//let dir = new Directory("/home/tappi/Downloads");
 });
 
+class MultiSelectTable {
+	constructor() {
+		this.jq = $(".file-container");
+		this.pivot = 0;
+	}
+
+	/**
+	 * @param {JQuery} row 
+	 */
+	register(row) {
+		row.click((e) => this.onclick(row, e));
+	}
+
+	/**
+	 * @param {JQuery} row 
+	 * @param {JQuery.ClickEvent} event 
+	 */
+	onclick(row, event) {
+		if (event.shiftKey) {
+			if (!event.ctrlKey) {
+				this.jq.children(".file").removeClass("selected");
+			}
+			this.selectRange(this.pivot, this.getIndex(row));
+		} else if (event.ctrlKey) {
+			this.pivot = this.getIndex(row);
+			row.toggleClass("selected");
+		} else {
+			this.jq.children(".file").removeClass("selected");
+			row.addClass("selected");
+			this.pivot = this.getIndex(row);
+		}
+	}
+
+	getIndex(row) {
+		return this.jq.children(".file").index(row);
+	}
+
+	getRow(index) {
+		return this.jq.children(".file").eq(index);
+	}
+
+	/**
+	 * 
+	 * @param {number} ia 
+	 * @param {number} ib 
+	 */
+	selectRange(ia, ib) {
+		console.log(ia + " | " + ib);
+		const start = Math.min(ia, ib);
+		const end = Math.max(ia, ib);
+
+		for (let i = start; i <= end; i++) {
+			this.getRow(i).addClass("selected");
+		}
+	}
+}
+
+const multiSelectTable = new MultiSelectTable();
+
 /**
  * @type {Directory[]}
  */
@@ -87,7 +146,7 @@ class Directory {
 
 	refreshFiles() {
 		walk(this.path, (file) => {
-			if (p.extname(file) === ".mp3" && !flps.some((flp) => flp.file === file)) {
+			if (p.extname(file) === ".png" && !flps.some((flp) => flp.file === file)) {
 				new FLP(file, this);
 			}
 		}, (err, results) => {
@@ -137,10 +196,8 @@ class FLP {
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>").text(this.lastModified.toLocaleString()))
 			.append($("<td/>").text(this.lastRender ? this.lastRender.toLocaleString() : "Never"))
-			.click(function() {
-				console.log("clicked " + ref.fileName);
-			});
 		$(".file-container").children().eq(index).after(this.jq);
+		multiSelectTable.register(this.jq);
 	}
 
 	get directoryName() {
