@@ -13,10 +13,25 @@
 <body>
 	<h1>FlpJck</h1>
 
-	<div class="setting">
-		<span>FL executable:</span>
-		<input readonly id="execPath" type="text" value="C:/Program Files/Image-Line/FL Studio 20/FL64.exe">
-		<button onclick="selectExecutable()">Select</button>
+	<div class="settings">
+		<div class="setting single-button">
+			<span>FL executable:</span>
+			<input readonly id="execPath" type="text" value="C:/Program Files/Image-Line/FL Studio 20/FL64.exe">
+			<button onclick="selectExecutable()">Select</button>
+		</div>
+
+		<div class="setting">
+			<span>Directories:</span>
+			<div class="directories">
+				<li class="directory" title="C:/Users/foobar/Documents/Fruity Loops">
+					<span>Fruity Loops</span>
+					<button class="remove">remove</button>
+				</li>
+				<li class="directory">FL Projects</li class="directory">
+				<li class="directory">Riff That Got Away</li class="directory">
+			</div>
+			<button onclick="userAddDirectory()">Add directory</button>
+		</div>
 	</div>
 
 	<div class="interface">

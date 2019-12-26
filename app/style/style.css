@@ -8,7 +8,8 @@ body {
   --color-light: hsl(150, 100%, 75%);
   --color-dark: hsl(190, 38%, 18%);
   --gray-dark: #333;
-  --gray: #555;
+  --gray: #4d4d4d;
+  --bad: rgb(255, 106, 125);
 
   background: var(--background);
   color: white;
@@ -56,28 +57,54 @@ input {
 input:focus {
   background-color: var(--gray);
 }
-input:focus::selection {
+*::selection {
   background-color: var(--color-light);
   border-radius: 2px;
+}
+input:read-only {
+  direction: rtl;
 }
 
 /*
     SETTINGS
 */
-.setting {
+.settings {
+  background-color: var(--gray);
+  padding: 5px;
+  border: 1px dashed white;
+}
+
+.setting.single-button {
   display: inline-flex;
   align-items: baseline;
 }
-
-.setting input {
+.setting.single-button input {
   border-radius: 5px 0 0 5px;
   margin-left: 5px;
   width: 250px;
-  direction: rtl;
+}
+.setting.single-button button {
+  border-radius: 0 5px 5px 0;
 }
 
-.setting button {
-  border-radius: 0 5px 5px 0;
+.directory {
+  margin-left: 10px;
+}
+.directory:hover button {
+  color: white;
+}
+.directory input {
+  min-width: 50px;
+}
+
+button.remove {
+  font-weight: bold;
+  background: none;
+  color: transparent;
+}
+button.remove:hover {
+  background: none;
+  color: var(--bad);
 }
 
 /*
@@ -142,6 +169,11 @@ input:focus::selection {
   margin: 0;
   padding: 5px;
   width: 100%;
+}
+
+.file td:nth-child(2) {
+  direction: rtl;
+  text-align: left;
 }
 
 /*

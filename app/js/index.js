@@ -9,11 +9,40 @@ $(document).ready(function() {
 	//console.log("be ready");
 	const task = new RenderTask("/home/tappi/test1.flp");
 	task.enqueue();
+
+	const notFlpButFlp = new FLP("/home/tappi/jon.png");
 });
 
-//
-// Task related
-//
+class FLP {
+	constructor(file) {
+		this.file = file;
+		this.stats = fs.statSync(file);
+		this.jqFile = $("<tr/>").addClass("file")
+			.append($("<td/>").text(this.fileName))
+			.append($("<td/>").text(this.directory))
+			.appendTo(".file-container")
+	}
+
+	get directory() {
+		return path.dirname(this.file);
+	}
+
+	get fileName() {
+		return path.basename(this.file);
+	}
+
+	get lastRender() {
+		const flp = userData.flps.find(function(flp) {
+			return flp.file === this.file;
+		});
+		if (flp) {
+			if (flp.lastRender) {
+				return new Date(flp.lastRender);
+			}
+		}
+		return null;
+	}
+}
 
 const States = {
 	NIRVANA: -1,
@@ -63,6 +92,10 @@ class RenderTask {
 		this.setProgress(0);
 	}
 
+	/**
+	 * 
+	 * @param {string} out 
+	 */
 	async flRender(out) {
 		return new Promise((resolve, reject) => {
 			console.log("Rendering " + this.flp + " to " + out);
@@ -101,29 +134,33 @@ function setExecPath(path) {
 //
 
 const savefile = path.join(app.app.getPath("userData"), "user.json");
-let preferences = {
-	execPath: ""
+let userData = {
+	preferences: {
+		execPath: "",
+		directories: []
+	},
+	flps: []
 };
 
-function savePreferences() {
-	fs.writeFile(savefile, JSON.stringify(preferences, null, 2), function(err) {
+function saveData() {
+	fs.writeFile(savefile, JSON.stringify(userData, null, 2), function(err) {
 		if (err) {
 			return console.error(err);
 		}
-		console.log("Saved preferences!");
+		console.log("Saved data!");
 	});
 }
 
-function loadPreferences() {
+function loadData() {
 	if (fs.existsSync(savefile)) {
-		preferences = JSON.parse(fs.readFileSync(savefile, "utf8"));
-		console.log(preferences);
-		setExecPath(preferences.execPath);
+		userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
+		console.log(userData);
+		setExecPath(userData.preferences.execPath);
 	}
 }
 
-loadPreferences();
+loadData();
 
 app.getCurrentWindow().on("close", function() {
-	savePreferences();
+	saveData();
 });
