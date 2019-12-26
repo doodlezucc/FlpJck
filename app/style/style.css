@@ -6,17 +6,19 @@
 body {
   --background: hsl(190, 40%, 30%);
   --color-light: hsl(150, 100%, 75%);
+  --color-dark: hsl(190, 38%, 18%);
   --gray-dark: #333;
   --gray: #555;
 
   background: var(--background);
   color: white;
-  font-family: "Rubik", sans-serif;
+  font-family: monospace;
   margin: 10px;
 }
 
 h1 {
   margin: 0;
+  font-family: "Rubik";
 }
 
 button {
@@ -24,14 +26,19 @@ button {
   border-radius: 5px;
   padding: 3px;
   border: none;
-  background: var(--color-light);
+  background-color: var(--color-light);
   color: var(--gray-dark);
   font: inherit;
   text-overflow: ellipsis;
   cursor: pointer;
 }
 button:enabled:hover {
-  background: white;
+  background-color: white;
+}
+
+.interface {
+  margin: 10px 0;
+  display: flex;
 }
 
 /*
@@ -42,15 +49,15 @@ input {
   border-radius: 5px;
   padding: 3px;
   border: none;
-  background: var(--gray-dark);
+  background-color: var(--gray-dark);
   color: inherit;
   font: inherit;
 }
 input:focus {
-  background: var(--gray);
+  background-color: var(--gray);
 }
 input:focus::selection {
-  background: var(--color-light);
+  background-color: var(--color-light);
   border-radius: 2px;
 }
 
@@ -60,15 +67,93 @@ input:focus::selection {
 .setting {
   display: inline-flex;
   align-items: baseline;
-  font-family: monospace;
 }
 
 .setting input {
   border-radius: 5px 0 0 5px;
   margin-left: 5px;
   width: 250px;
+  direction: rtl;
 }
 
 .setting button {
   border-radius: 0 5px 5px 0;
+}
+
+/*
+    TASKS
+*/
+.task-container {
+  display: block;
+  min-width: 100px;
+  width: 150px;
+  border: 1px dashed white;
+  padding: 5px;
+  background-color: var(--gray);
+}
+
+.task {
+  width: auto;
+  background-color: var(--gray-dark);
+}
+
+.task:not(:nth-child(1)) {
+  opacity: 60%;
+}
+
+.task h2 {
+  font-size: medium;
+  font-weight: normal;
+  margin: 0;
+  padding: 5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/*
+    FILES
+*/
+.file-container {
+  width: 100%;
+  flex: 1;
+  background-color: var(--gray);
+  border-collapse: separate;
+}
+
+.file-container th, td {
+  padding: 5px;
+  border-spacing: 0 2px;
+}
+
+.file-container tr {
+  background-color: var(--gray-dark);
+}
+
+.file {
+  cursor: pointer;
+}
+.file:hover {
+  background-color: var(--color-dark);
+}
+
+.file h2 {
+  font-size: medium;
+  font-weight: normal;
+  margin: 0;
+  padding: 5px;
+  width: 100%;
+}
+
+/*
+    PROGRESS
+*/
+.progressbar {
+  height: 2px;
+  background-color: var(--background);
+}
+
+.progress {
+  background-color: var(--color-light);
+  width: 50%;
+  height: 100%;
 }

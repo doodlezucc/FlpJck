@@ -7,7 +7,71 @@ const path = require("path");
 
 $(document).ready(function() {
 	//console.log("be ready");
+	const task = new RenderTask("/home/tappi/test1.flp");
+	task.enqueue();
 });
+
+//
+// Task related
+//
+
+const States = {
+	NIRVANA: -1,
+	ENQUEUED: 0,
+};
+
+class RenderTask {
+	constructor(flp) {
+		this.state = States.NIRVANA;
+		this.flp = flp;
+		this.jq = $();
+	}
+
+	enqueue() {
+		this.jq = $("<div></div>")
+			.addClass("task")
+			.append(
+				$("<h2></h2>")
+					.text(this.fileName)
+			)
+			.append(
+				$("<div></div>")
+					.addClass("progressbar")
+					.append(
+						$("<div></div>")
+							.addClass("progress")
+					)
+			).appendTo($(".task-container"))
+
+		this.setState(States.ENQUEUED);
+	}
+
+	/**
+	 * 
+	 * @param {Number} progress
+	 */
+	setProgress(progress) {
+		this.jq.find(".progress").css("width", (100 * progress) + "%");
+	}
+
+	get fileName() {
+		return path.basename(this.flp);
+	}
+
+	setState(state) {
+		this.state = state;
+		this.setProgress(0);
+	}
+
+	async flRender(out) {
+		return new Promise((resolve, reject) => {
+			console.log("Rendering " + this.flp + " to " + out);
+			setTimeout(() => {
+				resolve(out);
+			}, 2500);
+		});
+	}
+}
 
 function selectExecutable() {
 	dialog.showOpenDialog(app.getCurrentWindow(), {
@@ -32,21 +96,6 @@ function setExecPath(path) {
 	preferences.execPath = path;
 }
 
-// -----
-//
-// Fruity Loops related
-//
-
-async function flRender(flp, out) {
-	return new Promise((resolve, reject) => {
-		console.log("Rendering " + flp + " to " + out);
-		setTimeout(() => {
-			resolve(out);
-		}, 2500);
-	});
-}
-
-// -----
 //
 // IO
 //
