@@ -125,10 +125,11 @@ button.remove:hover {
 .task-container {
   display: block;
   min-width: 100px;
-  width: 150px;
+  max-width: 200px;
   border: 1px dashed white;
   padding: 5px;
   background-color: var(--gray);
+  width: 25%;
 }
 
 .task {
@@ -154,7 +155,6 @@ button.remove:hover {
 */
 .file-container {
   width: 100%;
-  flex: 1;
   background-color: var(--gray);
   border-collapse: separate;
 }

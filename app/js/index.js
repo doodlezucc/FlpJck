@@ -7,13 +7,13 @@ const p = require("path");
 
 $(document).ready(function() {
 	//console.log("be ready");
-	const task = new RenderTask("/home/tappi/test1.flp");
-	task.enqueue();
+	//const task = new RenderTask("/home/tappi/test1.flp");
+	//task.enqueue();
 
-	let notFlpButFlp = new FLP("/home/tappi/jon.png");
-	notFlpButFlp = new FLP("/home/tappi/Downloads/crouton");
+	//let notFlpButFlp = new FLP("/home/tappi/jon.png");
+	//notFlpButFlp = new FLP("/home/tappi/Downloads/crouton");
 
-	let dir = new Directory("/home/tappi/Downloads");
+	//let dir = new Directory("/home/tappi/Downloads");
 });
 
 /**
@@ -26,11 +26,12 @@ let directories = [];
 let flps = [];
 
 /**
- * 
+ * get all files inside a directory (recursive)
  * @param {string} dir 
+ * @param {(file: string) => void} fileFound
  * @param {(err: NodeJS.ErrnoException | null, files: string[]) => void} done
  */
-function walk(dir, done) {
+function walk(dir, fileFound, done) {
 	let results = [];
 	fs.readdir(dir, function(err, list) {
 		if (err) return done(err);
@@ -40,12 +41,13 @@ function walk(dir, done) {
 			file = p.resolve(dir, file);
 			fs.stat(file, function(err, stat) {
 				if (stat && stat.isDirectory()) {
-					walk(file, function(err, res) {
+					walk(file, fileFound, function(err, res) {
 						results = results.concat(res);
 						if (!--pending) done(null, results);
 					});
 				} else {
 					results.push(file);
+					fileFound(file);
 					if (!--pending) done(null, results);
 				}
 			});
@@ -84,18 +86,15 @@ class Directory {
 	}
 
 	refreshFiles() {
-		walk(this.path, (err, results) => {
+		walk(this.path, (file) => {
+			if (p.extname(file) === ".mp3" && !flps.some((flp) => flp.file === file)) {
+				new FLP(file, this);
+			}
+		}, (err, results) => {
 			if (err) {
 				return console.log(err);
 			}
 			this.files = results;
-			this.flpFiles = results.filter((f) => p.extname(f) === ".mp3");
-			this.flpFiles.forEach((f) => {
-				if (!flps.some((flp) => flp.file === f)) {
-					new FLP(f, this);
-				}
-			});
-
 			this.jq.removeClass("loading");
 		});
 	}
@@ -111,20 +110,37 @@ class FLP {
 	 * @param {Directory} directory
 	 */
 	constructor(file, directory) {
-		flps.push(this);
+		this.stats = fs.statSync(file);
+		this.lmao = this.stats.mtime.toLocaleString();
 		const ref = this;
 		this.file = file;
 		this.directory = directory;
-		this.stats = fs.statSync(file);
-		this.jqFile = $("<tr/>").addClass("file")
+		let index = -1;
+		for (let i = 0; i < flps.length; i++) {
+			if (this.lastModified > flps[i].lastModified) {
+				index = i;
+				break;
+			}
+		}
+		if (index < 0) {
+			flps.push(this);
+		} else if (index == 0) {
+			flps.unshift(this);
+		} else {
+			flps.splice(index, 0, this);
+		}
+		//console.log(this.fileName + " | " + this.lastModified);
+		//console.log(flps);
+		//console.log(index);
+		this.jq = $("<tr/>").addClass("file")
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>").text(this.lastModified.toLocaleString()))
 			.append($("<td/>").text(this.lastRender ? this.lastRender.toLocaleString() : "Never"))
-			.appendTo(".file-container")
 			.click(function() {
 				console.log("clicked " + ref.fileName);
 			});
+		$(".file-container").children().eq(index).after(this.jq);
 	}
 
 	get directoryName() {
@@ -144,7 +160,7 @@ class FLP {
 	}
 
 	remove() {
-		this.jqFile.remove();
+		this.jq.remove();
 		flps = flps.filter((flp) => flp !== this);
 	}
 }
