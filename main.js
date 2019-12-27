@@ -29,6 +29,10 @@ function createWindow() {
   });
 
   win.loadFile("app/index.html");
+
+  win.on('close', function(e) { //   <---- Catch close event
+    e.preventDefault();
+  });
 }
 
 el.app.on("ready", createWindow);

@@ -7,13 +7,6 @@ const p = require("path");
 
 $(document).ready(function() {
 	//console.log("be ready");
-	//const task = new RenderTask("/home/tappi/test1.flp");
-	//task.enqueue();
-
-	//let notFlpButFlp = new FLP("/home/tappi/jon.png");
-	//notFlpButFlp = new FLP("/home/tappi/Downloads/crouton");
-
-	//let dir = new Directory("/home/tappi/Downloads");
 });
 
 class MultiSelectTable {
@@ -81,6 +74,10 @@ let directories = [];
  * @type {FLP[]}
  */
 let flps = [];
+/**
+ * @type {RenderTask[]}
+ */
+let tasks = [];
 
 
 const { Menu, MenuItem } = app;
@@ -248,10 +245,6 @@ class RenderTask {
 	constructor(flp) {
 		this.state = States.NIRVANA;
 		this.flp = flp;
-		this.jq = $();
-	}
-
-	enqueue() {
 		this.jq = $("<div/>")
 			.addClass("task")
 			.append($("<h2/>").text(this.fileName))
@@ -260,12 +253,10 @@ class RenderTask {
 					.addClass("progressbar")
 					.append($("<div/>").addClass("progress"))
 			).appendTo($(".task-container"))
-
 		this.setState(States.ENQUEUED);
 	}
 
 	/**
-	 * 
 	 * @param {Number} progress
 	 */
 	setProgress(progress) {
@@ -282,7 +273,6 @@ class RenderTask {
 	}
 
 	/**
-	 * 
 	 * @param {string} out 
 	 */
 	async flRender(out) {
@@ -340,18 +330,14 @@ function getExecPath() {
 
 const savefile = p.join(app.app.getPath("userData"), "user.json");
 
-function saveData() {
-	fs.writeFile(savefile, JSON.stringify(
+function saveDataSync() {
+	fs.writeFileSync(savefile, JSON.stringify(
 		{
 			execPath: getExecPath(),
 			directories: directories.map((d) => d.path),
 			flps: []
-		}, null, 2), function(err) {
-			if (err) {
-				return console.error(err);
-			}
-			console.log("Saved data!");
-		});
+		}, null, 2));
+	console.log("Saved!");
 }
 
 function loadData() {
@@ -365,6 +351,10 @@ function loadData() {
 
 loadData();
 
-app.getCurrentWindow().on("close", function() {
-	saveData();
+app.getCurrentWindow().setMaxListeners(1);
+
+app.getCurrentWindow().on("close", function(e) {
+	console.log("ja loool");
+	saveDataSync();
+	app.getCurrentWindow().destroy();
 });

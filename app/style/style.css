@@ -9,12 +9,13 @@ body {
   --color-dark: hsl(190, 38%, 18%);
   --gray-dark: #333;
   --gray: #4d4d4d;
-  --bad: rgb(255, 106, 125);
+  --color-bad: rgb(255, 106, 125);
+  --spacing: 10px;
 
   background: var(--background);
   color: white;
   font-family: monospace;
-  margin: 10px;
+  margin: var(--spacing);
   cursor: default;
   user-select: none;
 }
@@ -46,11 +47,11 @@ button:enabled:hover {
 .bottom-container {
   display: flex;
   position: fixed;
-  top: 160px;
+  top: calc(150px + var(--spacing));
   right: 0;
   left: 0;
   bottom: 0;
-  margin: 10px;
+  margin: var(--spacing);
 }
 
 /*
@@ -83,6 +84,8 @@ input:read-only {
   background-color: var(--gray);
   padding: 5px;
   border: 1px dashed white;
+  overflow-y: auto;
+  height: 100px;
 }
 
 .setting {
@@ -127,7 +130,7 @@ button.remove {
 }
 button.remove:hover {
   background: none;
-  color: var(--bad);
+  color: var(--color-bad);
 }
 
 /*
@@ -137,8 +140,8 @@ button.remove:hover {
   position: absolute;
   display: block;
   width: 150px;
-  outline: 1px solid white;
-
+  border: 1px solid white;
+  box-sizing: border-box;
   padding: 5px;
   background-color: var(--gray);
   bottom: 0;
@@ -170,13 +173,13 @@ button.remove:hover {
 .border {
     display: block;
     z-index: 10;
-    height: calc(100% - 2px);
     border: 1px solid white;
-    left: -1px;
+    left: 0;
+    bottom: 0;
+    right: calc(150px + var(--spacing));
+    top: 0;
     position: absolute;
-    bottom: 0px;
     pointer-events: none;
-    right: 175px;
 }
 .file-container {
   border-collapse: separate;
@@ -184,7 +187,7 @@ button.remove:hover {
   background-color: var(--gray);
   display: table-row-group;
   overflow-y: auto;
-  width: calc(100% - 175px);
+  width: calc(100% - 150px - var(--spacing));
 }
 .file-container::-webkit-scrollbar {
   display: none;
@@ -194,19 +197,14 @@ button.remove:hover {
   width: 500px;
 }
 .file-container td {
-  /* For cells, apply the border to one of each side only (right but not left, bottom but not top) */
   border-bottom: 1px solid;
   border-right: 1px solid;
 }
-/* .file-container tr:last-child td {
-  border-bottom: 0;
-} */
 .file-container th {
   position: sticky;
   top: 0;
   z-index: 2;
   background-color: var(--gray-dark);
-  /* Apply both top and bottom borders to the <th> */
   border-bottom: 1px solid;
   border-right: 1px solid;
 }
@@ -215,7 +213,6 @@ button.remove:hover {
 }
 .file-container th:last-child,
 .file-container td:last-child {
-  /* Apply a left border on the first <td> or <th> in a row */
   border-right: none;
 }
 
