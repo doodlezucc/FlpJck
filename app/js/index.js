@@ -7,6 +7,24 @@ const p = require("path");
 
 $(document).ready(function() {
 	//console.log("be ready");
+	$("#enqueue").click(function() {
+		flps.forEach((flp) => {
+			if (flp.jq.hasClass("selected") && !flp.jq.hasClass("enqueued")) {
+				flp.enqueue();
+			}
+		});
+		$(this).prop("disabled", true);
+	});
+	$(".file-container").click(function(e) {
+		if (e.target.tagName === "TABLE") {
+			multiSelectTable.clearSelection();
+			multiSelectTable.gatherSelected();
+		}
+	});
+
+	// window.setTimeout(() => {
+	// 	flps[0].enqueue();
+	// }, 1000);
 });
 
 class MultiSelectTable {
@@ -28,18 +46,31 @@ class MultiSelectTable {
 	 */
 	onclick(row, event) {
 		if (event.shiftKey) {
+			if (row.hasClass("enqueued")) return;
 			if (!event.ctrlKey) {
-				this.jq.children().removeClass("selected");
+				this.clearSelection();
 			}
 			this.selectRange(this.pivot, this.getIndex(row));
 		} else if (event.ctrlKey) {
+			if (row.hasClass("enqueued")) return;
 			this.pivot = this.getIndex(row);
 			row.toggleClass("selected");
 		} else {
-			this.jq.children().removeClass("selected");
+			this.clearSelection();
+			if (row.hasClass("enqueued")) return;
 			row.addClass("selected");
 			this.pivot = this.getIndex(row);
 		}
+		this.gatherSelected();
+	}
+
+	gatherSelected() {
+		const sel = this.jq.children(".selected").not(".enqueued");
+		$("#enqueue").prop("disabled", sel.length == 0);
+	}
+
+	clearSelection() {
+		this.jq.children().removeClass("selected");
 	}
 
 	getIndex(row) {
@@ -59,7 +90,10 @@ class MultiSelectTable {
 		const end = Math.max(ia, ib);
 
 		for (let i = start; i <= end; i++) {
-			this.getRow(i).addClass("selected");
+			const row = this.getRow(i);
+			if (!row.hasClass("enqueued")) {
+				row.addClass("selected");
+			}
 		}
 	}
 }
@@ -74,10 +108,6 @@ let directories = [];
  * @type {FLP[]}
  */
 let flps = [];
-/**
- * @type {RenderTask[]}
- */
-let tasks = [];
 
 
 const { Menu, MenuItem } = app;
@@ -156,7 +186,7 @@ class Directory {
 
 	refreshFiles() {
 		walk(this.path, (file) => {
-			if (p.extname(file) === ".jpg" && !flps.some((flp) => flp.file === file)) {
+			if (p.extname(file) === ".mp3" && !flps.some((flp) => flp.file === file)) {
 				new FLP(file, this);
 			}
 		}, (err, results) => {
@@ -181,7 +211,7 @@ class FLP {
 	constructor(file, directory) {
 		this.stats = fs.statSync(file);
 		this.lmao = this.stats.mtime.toLocaleString();
-		const ref = this;
+		this.lastRender = null;
 		this.file = file;
 		this.directory = directory;
 		let index = -1;
@@ -226,24 +256,50 @@ class FLP {
 		return this.stats.mtime;
 	}
 
-	get lastRender() {
-		return null;
-	}
-
 	remove() {
 		this.jq.remove();
 		flps = flps.filter((flp) => flp !== this);
 	}
+
+	enqueue() {
+		this.jq.removeClass("selected");
+		this.jq.addClass("enqueued");
+		this.task = new RenderTask(this);
+		RenderTask.checkQueue();
+	}
+
+	onRenderTaskDone() {
+		this.task = null;
+		this.jq.removeClass("enqueued");
+		this.lastRender = new Date();
+		this.jq.children().eq(3).text(this.lastRender.toLocaleString());
+	}
+}
+
+class RenderTaskState {
+	constructor(name) {
+		this.name = name;
+	}
 }
 
 const States = {
-	NIRVANA: -1,
-	ENQUEUED: 0,
+	ENQUEUED: new RenderTaskState("Enqueued"),
+	OPENING_FILE: new RenderTaskState("Opening file"),
+	RENDERING: new RenderTaskState("Rendering"),
 };
 
 class RenderTask {
+	/**
+	 * @type {RenderTask[]}
+	 */
+	static taskQueue = [];
+	static isRendering = false;
+
+	/**
+	 * @param {FLP} flp 
+	 */
 	constructor(flp) {
-		this.state = States.NIRVANA;
+		this.state = States.OPENING_FILE;
 		this.flp = flp;
 		this.jq = $("<div/>")
 			.addClass("task")
@@ -252,19 +308,22 @@ class RenderTask {
 				$("<div/>")
 					.addClass("progressbar")
 					.append($("<div/>").addClass("progress"))
-			).appendTo($(".task-container"))
+			).appendTo($(".task-container"));
+		RenderTask.taskQueue.push(this);
 		this.setState(States.ENQUEUED);
+		RenderTask.checkQueue();
 	}
 
 	/**
 	 * @param {Number} progress
 	 */
 	setProgress(progress) {
-		this.jq.find(".progress").css("width", (100 * progress) + "%");
+		this.progress = progress;
+		this.jq.css("--progress", (100 * this.progress) + "%");
 	}
 
 	get fileName() {
-		return p.basename(this.flp);
+		return this.flp.fileName;
 	}
 
 	setState(state) {
@@ -272,16 +331,37 @@ class RenderTask {
 		this.setProgress(0);
 	}
 
-	/**
-	 * @param {string} out 
-	 */
-	async flRender(out) {
-		return new Promise((resolve) => {
-			console.log("Rendering " + this.flp + " to " + out);
-			setTimeout(() => {
-				resolve(out);
-			}, 2500);
-		});
+	flRender() {
+		console.log("Rendering " + this.fileName);
+		RenderTask.isRendering = true;
+		let i = 0;
+		const timeout = setInterval(() => {
+			this.setProgress(i / 100);
+			i++;
+			if (i >= 100) {
+				clearInterval(timeout);
+				this.onRenderDone();
+			}
+		}, 50);
+	}
+
+	onRenderDone() {
+		console.log("done!");
+		RenderTask.isRendering = false;
+		this.jq.remove();
+		this.flp.onRenderTaskDone();
+		RenderTask.checkQueue();
+	}
+
+	static checkQueue() {
+		if (!this.isRendering) {
+			if (this.taskQueue.length) {
+				const next = this.taskQueue.shift();
+				next.flRender();
+			} else {
+				console.log("nothing to unqueue");
+			}
+		}
 	}
 }
 
@@ -351,7 +431,7 @@ function loadData() {
 
 loadData();
 
-app.getCurrentWindow().setMaxListeners(1);
+app.getCurrentWindow().removeAllListeners();
 
 app.getCurrentWindow().on("close", function(e) {
 	console.log("ja loool");

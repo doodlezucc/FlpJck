@@ -4,25 +4,32 @@
 }
 
 body {
-  --background: hsl(190, 40%, 30%);
+  --background: hsl(170, 40%, 30%);
   --color-light: hsl(150, 100%, 75%);
-  --color-dark: hsl(190, 38%, 18%);
+  --color-dark: hsl(170, 76%, 25%);
   --gray-dark: #333;
   --gray: #4d4d4d;
   --color-bad: rgb(255, 106, 125);
   --spacing: 10px;
+  --task-window-width: 175px;
+  --settings-height: 150px;
+  --spacing-top: 0px;
 
   background: var(--background);
   color: white;
   font-family: monospace;
+  font-size: 13px;
   margin: var(--spacing);
   cursor: default;
   user-select: none;
+  position: relative;
 }
 
 h1 {
   margin: 0;
   font-family: "Rubik";
+  font-size: 25px;
+  text-align: center;
 }
 
 button {
@@ -34,6 +41,8 @@ button {
   color: var(--gray-dark);
   font: inherit;
   text-overflow: ellipsis;
+}
+button:enabled {
   cursor: pointer;
 }
 button:enabled:hover {
@@ -42,12 +51,15 @@ button:enabled:hover {
 
 .interface {
   display: block;
+  position: absolute;
+  top: var(--spacing-top);
+  width: 100%;
 }
 
 .bottom-container {
   display: flex;
   position: fixed;
-  top: calc(150px + var(--spacing));
+  top: calc(var(--settings-height) + var(--spacing-top) + var(--spacing));
   right: 0;
   left: 0;
   bottom: 0;
@@ -83,9 +95,10 @@ input:read-only {
 .settings {
   background-color: var(--gray);
   padding: 5px;
-  border: 1px dashed white;
+  border: 1px solid white;
   overflow-y: auto;
-  height: 100px;
+  height: var(--settings-height);
+  box-sizing: border-box;
 }
 
 .setting {
@@ -136,35 +149,60 @@ button.remove:hover {
 /*
     TASKS
 */
-.task-container {
+.task-window {
   position: absolute;
   display: block;
-  width: 150px;
+  width: var(--task-window-width);
   border: 1px solid white;
   box-sizing: border-box;
-  padding: 5px;
   background-color: var(--gray);
   bottom: 0;
   right: 0;
   top: 0;
 }
 
-.task {
-  width: auto;
+.tools {
+  height: 20px;
   background-color: var(--gray-dark);
 }
+.tools button {
+  border-radius: 0;
+  height: 100%;
+}
+.tools button:disabled {
+  opacity: 60%;
+}
 
+.task-container {
+  padding: 5px;
+  text-align: center;
+}
+.task-container:empty::after {
+  content: "Nothing to render";
+  justify-content: center;
+}
+
+.task {
+  width: auto;
+  --progress: 0%;
+  background: linear-gradient(to right, var(--color-dark) var(--progress), var(--gray-dark) 0%);
+  text-align: left;
+}
 .task:not(:nth-child(1)) {
   opacity: 60%;
 }
 
 .task h2 {
-  font-size: medium;
+  font-size: inherit;
   font-weight: normal;
   margin: 0;
   padding: 5px;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+.task .progress {
+  width: var(--progress);
 }
 
 /*
@@ -176,7 +214,7 @@ button.remove:hover {
     border: 1px solid white;
     left: 0;
     bottom: 0;
-    right: calc(150px + var(--spacing));
+    right: calc(var(--task-window-width) + var(--spacing));
     top: 0;
     position: absolute;
     pointer-events: none;
@@ -187,7 +225,7 @@ button.remove:hover {
   background-color: var(--gray);
   display: table-row-group;
   overflow-y: auto;
-  width: calc(100% - 150px - var(--spacing));
+  width: calc(100% - var(--task-window-width) - var(--spacing));
 }
 .file-container::-webkit-scrollbar {
   display: none;
@@ -197,8 +235,8 @@ button.remove:hover {
   width: 500px;
 }
 .file-container td {
-  border-bottom: 1px solid;
-  border-right: 1px solid;
+  border-right: 1px solid var(--gray);
+  border-bottom: 1px solid var(--gray);
 }
 .file-container th {
   position: sticky;
@@ -224,6 +262,9 @@ button.remove:hover {
 }
 .file.selected {
   background-color: blueviolet;
+}
+.file.enqueued {
+  color: gray;
 }
 
 .file td {

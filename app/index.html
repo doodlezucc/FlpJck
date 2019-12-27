@@ -11,8 +11,6 @@
 </head>
 
 <body>
-	<h1>FlpJck</h1>
-
 	<div class="interface">
 		<div class="settings">
 			<div class="setting single-button">
@@ -23,8 +21,7 @@
 
 			<div class="setting">
 				<span>Directories:</span>
-				<div class="directories">
-				</div>
+				<div class="directories"></div>
 				<button onclick="userAddDirectory()">Add directory</button>
 			</div>
 		</div>
@@ -40,11 +37,14 @@
 						<th>Last render</th>
 					</tr>
 				</thead>
-				<tbody class="rows">
-				</tbody>
+				<tbody class="rows"></tbody>
 			</table>
 
-			<div class="task-container">
+			<div class="task-window">
+				<div class="tools">
+					<button id="enqueue" disabled>Enqueue</button>
+				</div>
+				<div class="task-container"></div>
 			</div>
 		</div>
 	</div>
