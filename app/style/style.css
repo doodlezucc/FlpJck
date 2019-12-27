@@ -12,7 +12,7 @@ body {
   --color-bad: rgb(255, 106, 125);
   --spacing: 10px;
   --task-window-width: 175px;
-  --settings-height: 150px;
+  --settings-height: 100px;
   --spacing-top: 0px;
 
   background: var(--background);
@@ -66,6 +66,10 @@ button:enabled:hover {
   margin: var(--spacing);
 }
 
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /*
     INPUT
 */
@@ -97,53 +101,54 @@ input:read-only {
   padding: 5px;
   border: 1px solid white;
   overflow-y: auto;
+  overflow-x: hidden;
   height: var(--settings-height);
   box-sizing: border-box;
 }
 
 .setting {
   margin: 2px;
+  width: 100%;
 }
 
-.setting.single-button {
+.label {
+  font-weight: bold;
+}
+
+.setting {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
+  text-overflow: ellipsis;
 }
-.setting.single-button input {
-  border-radius: 5px 0 0 5px;
-  margin-left: 5px;
-  width: 250px;
+
+button.shy {
+  background: none;
+  color: var(--color-light);
 }
-.setting.single-button button {
-  border-radius: 0 5px 5px 0;
+button.shy:enabled:hover {
+  background: none;
+  font-weight: bold;
 }
 
 .directories {
-  padding: 5px 20px;
+  display: flex;
+  flex-wrap: wrap;
 }
 
-.directory:hover button {
+.directory {
+  cursor: pointer;
+  margin-left: 5px;
+}
+.directory:not(:last-child)::after {
+  content: ",";
   color: white;
+  cursor: default;
 }
-.directory input {
-  min-width: 50px;
+.directory:not(.loading):hover {
+  color: var(--color-bad);
 }
-
 .directory.loading {
   opacity: 60%;
-}
-.directory.loading button {
-  display: none;
-}
-
-button.remove {
-  font-weight: bold;
-  background: none;
-  color: transparent;
-}
-button.remove:hover {
-  background: none;
-  color: var(--color-bad);
 }
 
 /*
@@ -151,7 +156,8 @@ button.remove:hover {
 */
 .task-window {
   position: absolute;
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: var(--task-window-width);
   border: 1px solid white;
   box-sizing: border-box;
@@ -164,8 +170,11 @@ button.remove:hover {
 .tools {
   height: 20px;
   background-color: var(--gray-dark);
+  border-bottom: 1px solid var(--gray);
+  box-sizing: border-box;
 }
 .tools button {
+  padding: 2px 4px;
   border-radius: 0;
   height: 100%;
 }
@@ -174,8 +183,9 @@ button.remove:hover {
 }
 
 .task-container {
-  padding: 5px;
   text-align: center;
+  overflow-y: auto;
+  height: 100%;
 }
 .task-container:empty::after {
   content: "Nothing to render";
@@ -226,9 +236,6 @@ button.remove:hover {
   display: table-row-group;
   overflow-y: auto;
   width: calc(100% - var(--task-window-width) - var(--spacing));
-}
-.file-container::-webkit-scrollbar {
-  display: none;
 }
 .file-container td, th {
   padding: 5px;

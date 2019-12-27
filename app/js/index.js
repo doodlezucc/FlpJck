@@ -7,6 +7,10 @@ const p = require("path");
 
 $(document).ready(function() {
 	//console.log("be ready");
+	$("#execPath").click(function() {
+		selectExecutable();
+	});
+
 	$("#enqueue").click(function() {
 		flps.forEach((flp) => {
 			if (flp.jq.hasClass("selected") && !flp.jq.hasClass("enqueued")) {
@@ -159,16 +163,12 @@ class Directory {
 		directories.push(this);
 		const ref = this;
 		this.path = path;
-		this.jq = $("<li/>", { title: path })
+		this.jq = $("<span/>", { title: "Unlink \"" + path + "\"" })
 			.addClass("directory loading")
-			.append($("<span/>").text(this.name))
-			.append($("<button/>")
-				.addClass("remove")
-				.text("remove")
-				.click(function() {
-					ref.remove();
-				})
-			)
+			.text(this.name)
+			.click(function() {
+				ref.remove();
+			})
 			.appendTo(".directories");
 		this.files = [];
 		this.refreshFiles();
@@ -186,7 +186,7 @@ class Directory {
 
 	refreshFiles() {
 		walk(this.path, (file) => {
-			if (p.extname(file) === ".mp3" && !flps.some((flp) => flp.file === file)) {
+			if (p.extname(file) === ".png" && !flps.some((flp) => flp.file === file)) {
 				new FLP(file, this);
 			}
 		}, (err, results) => {
@@ -342,7 +342,7 @@ class RenderTask {
 				clearInterval(timeout);
 				this.onRenderDone();
 			}
-		}, 50);
+		}, 250);
 	}
 
 	onRenderDone() {
@@ -397,11 +397,11 @@ function selectExecutable() {
 
 function setExecPath(path) {
 	//console.log("Setting exec path to " + path);
-	$("#execPath").val(path);
+	$("#execPath").text(path);
 }
 
 function getExecPath() {
-	return $("#execPath").val();
+	return $("#execPath").text();
 }
 
 //
