@@ -13,35 +13,41 @@
 <body>
 	<h1>FlpJck</h1>
 
-	<div class="settings">
-		<div class="setting single-button">
-			<span>FL executable:</span>
-			<input readonly id="execPath" type="text" value="C:/Program Files/Image-Line/FL Studio 20/FL64.exe">
-			<button onclick="selectExecutable()">Select</button>
-		</div>
-
-		<div class="setting">
-			<span>Directories:</span>
-			<div class="directories">
+	<div class="interface">
+		<div class="settings">
+			<div class="setting single-button">
+				<span>FL executable:</span>
+				<input readonly id="execPath" type="text" value="C:/Program Files/Image-Line/FL Studio 20/FL64.exe">
+				<button onclick="selectExecutable()">Select</button>
 			</div>
-			<button onclick="userAddDirectory()">Add directory</button>
+
+			<div class="setting">
+				<span>Directories:</span>
+				<div class="directories">
+				</div>
+				<button onclick="userAddDirectory()">Add directory</button>
+			</div>
 		</div>
 	</div>
 
-	<div class="interface">
+	<div class="bottom-container">
 		<table class="file-container">
-			<tr>
-				<th>Name</th>
-				<th>Directory</th>
-				<th>Last modified</th>
-				<th>Last render</th>
-			</tr>
+			<tbody class="border"></tbody>
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Directory</th>
+					<th>Last modified</th>
+					<th>Last render</th>
+				</tr>
+			</thead>
+			<tbody class="rows">
+			</tbody>
 		</table>
+
 		<div class="task-container">
 		</div>
 	</div>
-
-
 
 	<script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
 

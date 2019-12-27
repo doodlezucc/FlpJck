@@ -40,8 +40,17 @@ button:enabled:hover {
 }
 
 .interface {
-  margin: 10px 0;
+  display: block;
+}
+
+.bottom-container {
   display: flex;
+  position: fixed;
+  top: 160px;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  margin: 10px;
 }
 
 /*
@@ -125,13 +134,16 @@ button.remove:hover {
     TASKS
 */
 .task-container {
+  position: absolute;
   display: block;
-  min-width: 100px;
-  max-width: 200px;
-  border: 1px dashed white;
+  width: 150px;
+  outline: 1px solid white;
+
   padding: 5px;
   background-color: var(--gray);
-  width: 25%;
+  bottom: 0;
+  right: 0;
+  top: 0;
 }
 
 .task {
@@ -155,17 +167,56 @@ button.remove:hover {
 /*
     FILES
 */
-.file-container {
-  width: 100%;
-  background-color: var(--gray);
-  border-collapse: separate;
+.border {
+    display: block;
+    z-index: 10;
+    height: calc(100% - 2px);
+    border: 1px solid white;
+    left: -1px;
+    position: absolute;
+    bottom: 0px;
+    pointer-events: none;
+    right: 175px;
 }
-.file-container th, td {
+.file-container {
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: var(--gray);
+  display: table-row-group;
+  overflow-y: auto;
+  width: calc(100% - 175px);
+}
+.file-container::-webkit-scrollbar {
+  display: none;
+}
+.file-container td, th {
   padding: 5px;
-  border-spacing: 0 2px;
+  width: 500px;
+}
+.file-container td {
+  /* For cells, apply the border to one of each side only (right but not left, bottom but not top) */
+  border-bottom: 1px solid;
+  border-right: 1px solid;
+}
+/* .file-container tr:last-child td {
+  border-bottom: 0;
+} */
+.file-container th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: var(--gray-dark);
+  /* Apply both top and bottom borders to the <th> */
+  border-bottom: 1px solid;
+  border-right: 1px solid;
 }
 .file-container tr {
   background-color: var(--gray-dark);
+}
+.file-container th:last-child,
+.file-container td:last-child {
+  /* Apply a left border on the first <td> or <th> in a row */
+  border-right: none;
 }
 
 .file {

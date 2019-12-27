@@ -18,7 +18,7 @@ $(document).ready(function() {
 
 class MultiSelectTable {
 	constructor() {
-		this.jq = $(".file-container");
+		this.jq = $(".rows");
 		this.pivot = 0;
 	}
 
@@ -36,34 +36,32 @@ class MultiSelectTable {
 	onclick(row, event) {
 		if (event.shiftKey) {
 			if (!event.ctrlKey) {
-				this.jq.children(".file").removeClass("selected");
+				this.jq.children().removeClass("selected");
 			}
 			this.selectRange(this.pivot, this.getIndex(row));
 		} else if (event.ctrlKey) {
 			this.pivot = this.getIndex(row);
 			row.toggleClass("selected");
 		} else {
-			this.jq.children(".file").removeClass("selected");
+			this.jq.children().removeClass("selected");
 			row.addClass("selected");
 			this.pivot = this.getIndex(row);
 		}
 	}
 
 	getIndex(row) {
-		return this.jq.children(".file").index(row);
+		return this.jq.children().index(row);
 	}
 
 	getRow(index) {
-		return this.jq.children(".file").eq(index);
+		return this.jq.children().eq(index);
 	}
 
 	/**
-	 * 
 	 * @param {number} ia 
 	 * @param {number} ib 
 	 */
 	selectRange(ia, ib) {
-		console.log(ia + " | " + ib);
 		const start = Math.min(ia, ib);
 		const end = Math.max(ia, ib);
 
@@ -83,6 +81,21 @@ let directories = [];
  * @type {FLP[]}
  */
 let flps = [];
+
+
+const { Menu, MenuItem } = app;
+
+const menu = new Menu()
+menu.append(new MenuItem({ label: "Start rendering", click() { console.log("yeesh") } }))
+menu.append(new MenuItem({ type: 'separator' }))
+menu.append(new MenuItem({ label: 'MenuItem2', type: 'checkbox', checked: true }))
+
+window.addEventListener('contextmenu', (e) => {
+	e.preventDefault();
+	menu.popup({ window: app.getCurrentWindow() });
+}, false);
+
+
 
 /**
  * get all files inside a directory (recursive)
@@ -146,7 +159,7 @@ class Directory {
 
 	refreshFiles() {
 		walk(this.path, (file) => {
-			if (p.extname(file) === ".png" && !flps.some((flp) => flp.file === file)) {
+			if (p.extname(file) === ".jpg" && !flps.some((flp) => flp.file === file)) {
 				new FLP(file, this);
 			}
 		}, (err, results) => {
@@ -195,8 +208,12 @@ class FLP {
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>").text(this.lastModified.toLocaleString()))
-			.append($("<td/>").text(this.lastRender ? this.lastRender.toLocaleString() : "Never"))
-		$(".file-container").children().eq(index).after(this.jq);
+			.append($("<td/>").text(this.lastRender ? this.lastRender.toLocaleString() : "Never"));
+		if (multiSelectTable.jq.children().length == 0) {
+			multiSelectTable.jq.append(this.jq);
+		} else {
+			multiSelectTable.jq.children().eq(index).after(this.jq);
+		}
 		multiSelectTable.register(this.jq);
 	}
 
@@ -309,7 +326,7 @@ function selectExecutable() {
 }
 
 function setExecPath(path) {
-	console.log("Setting exec path to " + path);
+	//console.log("Setting exec path to " + path);
 	$("#execPath").val(path);
 }
 
@@ -340,7 +357,7 @@ function saveData() {
 function loadData() {
 	if (fs.existsSync(savefile)) {
 		const userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
-		console.log(userData);
+		//console.log(userData);
 		setExecPath(userData.execPath);
 		userData.directories.forEach((path) => new Directory(path));
 	}
