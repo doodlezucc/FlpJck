@@ -12,7 +12,7 @@
 
 <body>
 	<div class="interface">
-		<div class="settings">
+		<div class="settings hide-scrollbar">
 			<div class="setting">
 				<span class="label">FL executable:</span>
 				<button id="execPath" title="Click to change" class="shy">C:/Program Files/</button>
@@ -20,8 +20,9 @@
 
 			<div class="setting">
 				<span class="label">Directories:</span>
-				<div class="directories"></div>
-				<button onclick="userAddDirectory()" class="shy">Add directory</button>
+				<div class="directories">
+					<button id="addSrcDir" class="shy">Add</button>
+				</div>
 			</div>
 		</div>
 

@@ -10,7 +10,9 @@ $(document).ready(function() {
 	$("#execPath").click(function() {
 		selectExecutable();
 	});
-
+	$("#addSrcDir").click(function() {
+		userAddDirectory();
+	});
 	$("#enqueue").click(function() {
 		flps.forEach((flp) => {
 			if (flp.jq.hasClass("selected") && !flp.jq.hasClass("enqueued")) {
@@ -168,8 +170,8 @@ class Directory {
 			.text(this.name)
 			.click(function() {
 				ref.remove();
-			})
-			.appendTo(".directories");
+			});
+		$(".directories").children().last().before(this.jq);
 		this.files = [];
 		this.refreshFiles();
 	}
