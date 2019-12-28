@@ -44,9 +44,9 @@ $(document).ready(function() {
 		}
 	});
 
-	// window.setTimeout(() => {
-	// 	flps[0].enqueue();
-	// }, 1000);
+	window.setTimeout(() => {
+		flps.forEach((flp) => flp.enqueue());
+	}, 1000);
 });
 
 class MultiSelectTable {
@@ -328,11 +328,29 @@ class RenderTask {
 	 * @param {FLP} flp 
 	 */
 	constructor(flp) {
+		const ref = this;
 		this.state = States.OPENING_FILE;
 		this.flp = flp;
 		this.jq = $("<div/>")
 			.addClass("task")
 			.append($("<h2/>").text(this.fileName))
+			.append($("<div/>")
+				.addClass("task-buttons")
+				.append($("<button/>")
+					.text("T")
+					.addClass("move")
+					.click(function() {
+						ref.moveToTop();
+					})
+				)
+				.append($("<button/>")
+					.text("X")
+					.addClass("remove")
+					.click(function() {
+						ref.unprepare();
+					})
+				)
+			)
 			.append(
 				$("<div/>")
 					.addClass("progressbar")
@@ -341,6 +359,20 @@ class RenderTask {
 		RenderTask.taskQueue.push(this);
 		this.setState(States.ENQUEUED);
 		RenderTask.checkQueue();
+	}
+
+	unprepare() {
+		RenderTask.taskQueue = RenderTask.taskQueue.filter((task) => task !== this);
+		this.jq.remove();
+		this.flp.jq.removeClass("enqueued");
+	}
+
+	moveToTop() {
+		if (RenderTask.taskQueue.length > 1) {
+			$(".task-container").children().first().after(this.jq);
+			RenderTask.taskQueue = RenderTask.taskQueue.filter((task) => task !== this);
+			RenderTask.taskQueue.unshift(this);
+		}
 	}
 
 	/**
@@ -391,7 +423,7 @@ class RenderTask {
 				clearInterval(timeout);
 				this.onRenderDone();
 			}
-		}, 50);
+		}, 150);
 	}
 
 	onRenderDone() {
@@ -474,6 +506,7 @@ function loadData() {
 	if (fs.existsSync(savefile)) {
 		const userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
 		$("#execPath").text(userData.execPath);
+		$("#outDir").text(userData.outDir);
 		for (const key in userData.renderings) {
 			const r = userData.renderings[key];
 			renderings.set(key, new Rendering(r.output, new Date(r.date)));
