@@ -12,22 +12,21 @@
 
 <body>
 	<div class="interface">
-		<div class="settings hide-scrollbar">
-			<div class="setting">
-				<span class="label">FL executable:</span>
-				<button id="execPath" title="Click to change" class="shy">C:/Program Files/</button>
-			</div>
-
+		<div class="settings scroll">
 			<div class="setting">
 				<span class="label">Directories:</span>
 				<div class="directories">
 					<button id="addSrcDir" class="shy">Add</button>
 				</div>
 			</div>
+			<div class="setting">
+				<span class="label">FL executable:</span>
+				<button id="execPath" title="Click to change" class="shy">C:/Program Files/</button>
+			</div>
 		</div>
 
 		<div class="bottom-container">
-			<table class="file-container hide-scrollbar">
+			<table class="file-container scroll">
 				<tbody class="border"></tbody>
 				<thead>
 					<tr>
@@ -44,7 +43,7 @@
 				<div class="tools">
 					<button id="enqueue" disabled>Enqueue</button>
 				</div>
-				<div class="task-container hide-scrollbar"></div>
+				<div class="task-container scroll"></div>
 			</div>
 		</div>
 	</div>

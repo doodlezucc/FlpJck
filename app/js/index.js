@@ -77,6 +77,7 @@ class MultiSelectTable {
 
 	clearSelection() {
 		this.jq.children().removeClass("selected");
+		this.gatherSelected();
 	}
 
 	getIndex(row) {
@@ -101,6 +102,7 @@ class MultiSelectTable {
 				row.addClass("selected");
 			}
 		}
+		this.gatherSelected();
 	}
 }
 
