@@ -2,6 +2,9 @@
 	"name": "flpjck",
 	"version": "1.0.0",
 	"description": "FL Studio batch export tool",
+	"repository": {
+		"url": "https://github.com/FellowHead/flpjck.git"
+	},
 	"main": "main.js",
 	"scripts": {
 		"start": "electron ."
@@ -12,6 +15,7 @@
 		"electron": "^7.1.1"
 	},
 	"dependencies": {
+		"child_process": "^1.0.2",
 		"electron-reload": "^1.5.0",
 		"fs": "0.0.1-security",
 		"jquery": "^3.4.1",

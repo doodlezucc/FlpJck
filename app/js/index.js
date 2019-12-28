@@ -4,6 +4,7 @@ const app = require("electron").remote;
 const dialog = app.dialog;
 const fs = require("fs");
 const p = require("path");
+const childProcess = require("child_process");
 
 $(document).ready(function() {
 	//console.log("be ready");
@@ -28,9 +29,9 @@ $(document).ready(function() {
 		}
 	});
 
-	// window.setTimeout(() => {
-	// 	flps[0].enqueue();
-	// }, 1000);
+	window.setTimeout(() => {
+		flps[0].enqueue();
+	}, 1000);
 });
 
 class MultiSelectTable {
@@ -190,7 +191,7 @@ class Directory {
 
 	refreshFiles() {
 		walk(this.path, (file) => {
-			if (p.extname(file) === ".png" && !flps.some((flp) => flp.file === file)) {
+			if (p.extname(file) === ".flp" && !flps.some((flp) => flp.file === file)) {
 				new FLP(file, this);
 			}
 		}, (err, results) => {
@@ -232,17 +233,12 @@ class FLP {
 		} else {
 			flps.splice(index, 0, this);
 		}
-		console.log(this.fileName + " | " + this.lmao);
-		console.log(flps);
-		console.log(index);
-		console.log(flps.length - 1);
 		this.jq = $("<tr/>").addClass("file")
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>").text(this.lastModified.toLocaleString()))
 			.append($("<td/>").text(this.lastRender ? this.lastRender.toLocaleString() : "Never"));
 		if (index < 0) {
-			console.log("append.");
 			multiSelectTable.jq.append(this.jq);
 		} else {
 			multiSelectTable.jq.children().eq(index).before(this.jq);
@@ -334,11 +330,30 @@ class RenderTask {
 
 	setState(state) {
 		this.state = state;
-		this.setProgress(0);
+	}
+
+	render() {
+		this.flRender();
 	}
 
 	flRender() {
 		console.log("Rendering " + this.fileName);
+		RenderTask.isRendering = true;
+		this.setState(States.OPENING_FILE);
+		const cp = childProcess.spawn("cmd.exe", ["/C", "\"" + getExecPath() + "\" /Rpaths /Emp3 /OC:\\tmp C:\\tmp\\test.flp"], {
+			detached: true,
+			shell: true
+		});
+		cp.on("close", (code, signal) => {
+			//console.log("Exited with code " + code + ", signal " + signal);
+			if (code == 0) {
+				this.onRenderDone();
+			}
+		})
+	}
+
+	pseudoRender() {
+		console.log("PSEUDO rendering " + this.fileName);
 		RenderTask.isRendering = true;
 		let i = 0;
 		const timeout = setInterval(() => {
@@ -363,7 +378,7 @@ class RenderTask {
 		if (!this.isRendering) {
 			if (this.taskQueue.length) {
 				const next = this.taskQueue.shift();
-				next.flRender();
+				next.render();
 			} else {
 				console.log("nothing to unqueue");
 			}
@@ -408,6 +423,10 @@ function setExecPath(path) {
 
 function getExecPath() {
 	return $("#execPath").text();
+}
+
+function getOutputDirectory() {
+	return "C:/tmp/";
 }
 
 //
