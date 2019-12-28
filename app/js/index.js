@@ -232,18 +232,20 @@ class FLP {
 		} else {
 			flps.splice(index, 0, this);
 		}
-		//console.log(this.fileName + " | " + this.lastModified);
-		//console.log(flps);
-		//console.log(index);
+		console.log(this.fileName + " | " + this.lmao);
+		console.log(flps);
+		console.log(index);
+		console.log(flps.length - 1);
 		this.jq = $("<tr/>").addClass("file")
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>").text(this.lastModified.toLocaleString()))
 			.append($("<td/>").text(this.lastRender ? this.lastRender.toLocaleString() : "Never"));
-		if (multiSelectTable.jq.children().length == 0) {
+		if (index < 0) {
+			console.log("append.");
 			multiSelectTable.jq.append(this.jq);
 		} else {
-			multiSelectTable.jq.children().eq(index).after(this.jq);
+			multiSelectTable.jq.children().eq(index).before(this.jq);
 		}
 		multiSelectTable.register(this.jq);
 	}
