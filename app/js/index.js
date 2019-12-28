@@ -29,9 +29,9 @@ $(document).ready(function() {
 		}
 	});
 
-	window.setTimeout(() => {
-		flps[0].enqueue();
-	}, 1000);
+	// window.setTimeout(() => {
+	// 	flps[0].enqueue();
+	// }, 1000);
 });
 
 class MultiSelectTable {
@@ -117,7 +117,10 @@ let directories = [];
  * @type {FLP[]}
  */
 let flps = [];
-
+/**
+ * 	@type {Map<string, Rendering>}
+ */
+let renderings = new Map();
 
 const { Menu, MenuItem } = app;
 
@@ -191,7 +194,7 @@ class Directory {
 
 	refreshFiles() {
 		walk(this.path, (file) => {
-			if (p.extname(file) === ".flp" && !flps.some((flp) => flp.file === file)) {
+			if (p.extname(file) === ".png" && !flps.some((flp) => flp.file === file)) {
 				new FLP(file, this);
 			}
 		}, (err, results) => {
@@ -216,7 +219,6 @@ class FLP {
 	constructor(file, directory) {
 		this.stats = fs.statSync(file);
 		this.lmao = this.stats.mtime.toLocaleString();
-		this.lastRender = null;
 		this.file = file;
 		this.directory = directory;
 		let index = -1;
@@ -270,11 +272,21 @@ class FLP {
 		RenderTask.checkQueue();
 	}
 
-	onRenderTaskDone() {
+	onRenderTaskDone(output) {
 		this.task = null;
 		this.jq.removeClass("enqueued");
-		this.lastRender = new Date();
+		renderings.set(this.file, new Rendering(output, new Date()));
 		this.jq.children().eq(3).text(this.lastRender.toLocaleString());
+		//console.log(renderings);
+		saveDataSync();
+	}
+
+	get lastRender() {
+		return this.lastRendering ? this.lastRendering.date : null;
+	}
+
+	get lastRendering() {
+		return renderings.get(this.file);
 	}
 }
 
@@ -333,7 +345,8 @@ class RenderTask {
 	}
 
 	render() {
-		this.flRender();
+		this.pseudoRender();
+		//this.flRender();
 	}
 
 	flRender() {
@@ -363,15 +376,19 @@ class RenderTask {
 				clearInterval(timeout);
 				this.onRenderDone();
 			}
-		}, 250);
+		}, 50);
 	}
 
 	onRenderDone() {
 		console.log("done!");
 		RenderTask.isRendering = false;
 		this.jq.remove();
-		this.flp.onRenderTaskDone();
+		this.flp.onRenderTaskDone(this.output);
 		RenderTask.checkQueue();
+	}
+
+	get output() {
+		return "C:/tmp/";
 	}
 
 	static checkQueue() {
@@ -379,10 +396,19 @@ class RenderTask {
 			if (this.taskQueue.length) {
 				const next = this.taskQueue.shift();
 				next.render();
-			} else {
-				console.log("nothing to unqueue");
 			}
 		}
+	}
+}
+
+class Rendering {
+	/**
+	 * @param {string} output 
+	 * @param {Date} date 
+	 */
+	constructor(output, date) {
+		this.output = output;
+		this.date = date;
 	}
 }
 
@@ -436,11 +462,18 @@ function getOutputDirectory() {
 const savefile = p.join(app.app.getPath("userData"), "user.json");
 
 function saveDataSync() {
+	const jRenderings = {};
+	renderings.forEach((r, flp) => {
+		jRenderings[flp] = {
+			"output": r.output,
+			"date": r.date.getTime()
+		};
+	});
 	fs.writeFileSync(savefile, JSON.stringify(
 		{
 			execPath: getExecPath(),
 			directories: directories.map((d) => d.path),
-			flps: []
+			renderings: jRenderings
 		}, null, 2));
 	console.log("Saved!");
 }
@@ -448,8 +481,11 @@ function saveDataSync() {
 function loadData() {
 	if (fs.existsSync(savefile)) {
 		const userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
-		//console.log(userData);
 		setExecPath(userData.execPath);
+		for (const key in userData.renderings) {
+			const r = userData.renderings[key];
+			renderings.set(key, new Rendering(r.output, new Date(r.date)));
+		}
 		userData.directories.forEach((path) => new Directory(path));
 	}
 }
@@ -459,7 +495,6 @@ loadData();
 app.getCurrentWindow().removeAllListeners();
 
 app.getCurrentWindow().on("close", function(e) {
-	console.log("ja loool");
 	saveDataSync();
 	app.getCurrentWindow().destroy();
 });

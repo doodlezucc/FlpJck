@@ -24,7 +24,8 @@ function createWindow() {
 		height: 400,
 		webPreferences: {
 			nodeIntegration: true
-		}
+		},
+		alwaysOnTop: true
 	});
 
 	win.loadFile("app/index.html");

@@ -1,75 +1,75 @@
 @font-face {
-  font-family: Rubik;
-  src: url("fonts/Rubik.ttf");
+	font-family: Rubik;
+	src: url("fonts/Rubik.ttf");
 }
 
 body {
-  --background: hsl(170, 40%, 30%);
-  --color-light: hsl(150, 100%, 75%);
-  --color: hsl(170, 28%, 55%);
-  --color-dark: hsl(170, 76%, 25%);
-  --gray-dark: hsl(0, 0%, 15%);
-  --gray: hsl(0, 0%, 30%);
-  --color-bad: hsl(352, 100%, 71%);
-  --spacing: 10px;
-  --task-window-width: 175px;
-  --settings-height: 61px;
-  --spacing-top: 0px;
-  --head-height: 30px;
+	--background: hsl(170, 40%, 30%);
+	--color-light: hsl(150, 100%, 75%);
+	--color: hsl(170, 28%, 55%);
+	--color-dark: hsl(170, 35%, 35%);
+	--gray-dark: hsl(0, 0%, 15%);
+	--gray: hsl(0, 0%, 30%);
+	--color-bad: hsl(352, 100%, 71%);
+	--spacing: 10px;
+	--task-window-width: 175px;
+	--settings-height: 56px;
+	--spacing-top: 0px;
+	--head-height: 30px;
 
-  background: var(--background);
-  color: white;
-  font-family: Calibri, sans-serif;
-  font-size: 16px;
-  margin: var(--spacing);
-  cursor: default;
-  user-select: none;
-  position: relative;
+	background: var(--background);
+	color: white;
+	font-family: Calibri, sans-serif;
+	font-size: 16px;
+	margin: var(--spacing);
+	cursor: default;
+	user-select: none;
+	position: relative;
 }
 
 h1 {
-  margin: 0;
-  font-family: "Rubik";
-  font-size: 25px;
-  text-align: center;
+	margin: 0;
+	font-family: "Rubik";
+	font-size: 25px;
+	text-align: center;
 }
 
 button {
-  outline: none;
-  border-radius: 5px;
-  padding: 3px;
-  border: none;
-  background-color: var(--color-light);
-  color: var(--gray-dark);
-  font: inherit;
-  text-overflow: ellipsis;
+	outline: none;
+	border-radius: 5px;
+	padding: 3px;
+	border: none;
+	background-color: var(--color-light);
+	color: var(--gray-dark);
+	font: inherit;
+	text-overflow: ellipsis;
 }
 button:enabled {
-  cursor: pointer;
+	cursor: pointer;
 }
 button:enabled:hover {
-  background-color: white;
+	background-color: white;
 }
 
 .interface {
-  display: block;
-  position: absolute;
-  top: var(--spacing-top);
-  width: 100%;
+	display: block;
+	position: absolute;
+	top: var(--spacing-top);
+	width: 100%;
 }
 
 .bottom-container {
-  display: flex;
-  position: fixed;
-  top: calc(var(--settings-height) + var(--spacing-top) + var(--spacing));
-  right: 0;
-  left: 0;
-  bottom: 0;
-  margin: var(--spacing);
+	display: flex;
+	position: fixed;
+	top: calc(var(--settings-height) + var(--spacing-top) + var(--spacing));
+	right: 0;
+	left: 0;
+	bottom: 0;
+	margin: var(--spacing);
 }
 
 .scroll::-webkit-scrollbar {
-  display: none;
+	display: none;
 }
 
 th {
@@ -77,44 +77,44 @@ th {
 }
 
 /*
-    INPUT
+		INPUT
 */
 input {
-  outline: none;
-  border-radius: 5px;
-  padding: 3px;
-  border: none;
-  background-color: var(--gray-dark);
-  color: inherit;
-  font: inherit;
+	outline: none;
+	border-radius: 5px;
+	padding: 3px;
+	border: none;
+	background-color: var(--gray-dark);
+	color: inherit;
+	font: inherit;
 }
 input:focus {
-  background-color: var(--gray);
+	background-color: var(--gray);
 }
 *::selection {
-  background-color: var(--color-light);
-  border-radius: 2px;
+	background-color: var(--color-light);
+	border-radius: 2px;
 }
 input:read-only {
-  direction: rtl;
+	direction: rtl;
 }
 
 /*
-    SETTINGS
+		SETTINGS
 */
 .settings {
-  background-color: var(--gray-dark);
-  padding: 5px;
-  border: 1px solid white;
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: var(--settings-height);
-  box-sizing: border-box;
+	background-color: var(--gray-dark);
+	padding: 5px;
+	border: 1px solid white;
+	overflow-y: auto;
+	overflow-x: hidden;
+	height: var(--settings-height);
+	box-sizing: border-box;
 }
 
 .setting {
-  margin: 2px;
-  width: 100%;
+	margin: 2px;
+	width: 100%;
 }
 
 .label {
@@ -124,184 +124,185 @@ input:read-only {
 }
 
 .setting {
-  display: inline-flex;
-  align-items: center;
-  text-overflow: ellipsis;
+	display: inline-flex;
+	align-items: center;
+	text-overflow: ellipsis;
 }
 
 button.shy {
-  background: none;
-  color: var(--color-light);
+	background: none;
+	color: var(--color-light);
 	text-align: left;
 	padding: 0;
 }
 button.shy:enabled:hover {
-  background: none;
-  color: var(--color);
+	background: none;
+	color: var(--color);
 }
 
 .directories {
-  display: flex;
-  flex-wrap: wrap;
+	display: flex;
+	flex-wrap: wrap;
 }
 
 .directory {
-  cursor: pointer;
-  margin-right: 5px;
-  align-self: center;
+	cursor: pointer;
+	margin-right: 5px;
+	align-self: center;
 }
 .directory:not(:last-child)::after {
-  content: ",";
-  color: white;
-  cursor: default;
+	content: ",";
+	color: white;
+	cursor: default;
 }
 .directory:not(.loading):hover {
-  color: var(--color-bad);
+	color: var(--color-bad);
 }
 .directory.loading {
-  opacity: 60%;
+	opacity: 60%;
 }
 
 /*
-    TASKS
+		TASKS
 */
 .task-window {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  width: var(--task-window-width);
-  border: 1px solid white;
-  box-sizing: border-box;
-  background-color: var(--gray);
-  bottom: 0;
-  right: 0;
-  top: 0;
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	width: var(--task-window-width);
+	border: 1px solid white;
+	box-sizing: border-box;
+	background-color: var(--gray);
+	bottom: 0;
+	right: 0;
+	top: 0;
 }
 
 .tools {
-  height: calc(var(--head-height) - 1px);
-  background-color: var(--gray-dark);
-  border-bottom: 1px solid white;
-  box-sizing: border-box;
+	min-height: calc(var(--head-height) - 1px);
+	background-color: var(--gray-dark);
+	border-bottom: 1px solid white;
+	box-sizing: border-box;
 }
 .tools button {
-  padding: 2px 4px;
-  border-radius: 0;
-  height: 100%;
+	padding: 2px 4px;
+	border-radius: 0;
+	height: 100%;
 }
 .tools button:disabled {
-  opacity: 60%;
+	opacity: 60%;
 }
 
 .task-container {
-  text-align: center;
-  overflow-y: auto;
+	text-align: center;
+	overflow-y: auto;
 }
 .task-container:empty::after {
-  content: "Nothing to render";
-  justify-content: center;
+	content: "Nothing to render";
+	justify-content: center;
 }
 
 .task {
-  width: auto;
-  --progress: 0%;
-  background: linear-gradient(to right, var(--color-dark) var(--progress), var(--gray-dark) 0%);
-  text-align: left;
+	width: auto;
+	--progress: 0%;
+	background: linear-gradient(to right, var(--color-dark) var(--progress), var(--gray-dark) 0%);
+	text-align: left;
 }
 .task:not(:nth-child(1)) {
-  opacity: 60%;
+	opacity: 60%;
 }
 
 .task h2 {
-  font-size: inherit;
-  font-weight: normal;
-  margin: 0;
-  padding: 5px;
-  text-overflow: ellipsis;
-  overflow: hidden;
+	font-size: inherit;
+	font-weight: normal;
+	margin: 0;
+	padding: 5px;
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
 
 .task .progress {
-  width: var(--progress);
+	width: var(--progress);
 }
 
 /*
-    FILES
+		FILES
 */
 .border {
-    display: block;
-    z-index: 10;
-    border: 1px solid white;
-    left: 0;
-    bottom: 0;
-    right: calc(var(--task-window-width) + var(--spacing));
-    top: 0;
-    position: absolute;
-    pointer-events: none;
+		display: block;
+		z-index: 10;
+		border: 1px solid white;
+		left: 0;
+		bottom: 0;
+		right: calc(var(--task-window-width) + var(--spacing));
+		top: 0;
+		position: absolute;
+		pointer-events: none;
 }
 .file-container {
-  border-collapse: separate;
-  border-spacing: 0;
-  background-color: var(--gray);
-  display: table-row-group;
-  overflow-y: auto;
-  width: calc(100% - var(--task-window-width) - var(--spacing));
+	border-collapse: separate;
+	border-spacing: 0;
+	background-color: var(--gray);
+	display: table-row-group;
+	overflow-y: auto;
+	width: calc(100% - var(--task-window-width) - var(--spacing));
 }
 .file-container td, th {
-  padding: 5px;
-  width: 500px;
+	padding: 5px;
+	width: 500px;
 }
 .file-container td {
-  border-right: 1px solid var(--gray);
-  border-bottom: 1px solid var(--gray);
+	border-right: 1px solid var(--gray);
+	border-bottom: 1px solid var(--gray);
+	white-space: nowrap;
 }
 .file-container th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background-color: var(--gray-dark);
-  border-bottom: 1px solid;
-  border-right: 1px solid;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background-color: var(--gray-dark);
+	border-bottom: 1px solid;
+	border-right: 1px solid;
 	box-sizing: border-box;
 	height: var(--head-height);
 }
 .file-container tr {
-  background-color: var(--gray-dark);
+	background-color: var(--gray-dark);
 }
 .file-container th:last-child,
 .file-container td:last-child {
-  border-right: none;
+	border-right: none;
 }
 
 .file {
-  cursor: default;
+	cursor: default;
 }
 .file:hover {
-  background-color: var(--color-dark);
+	background-color: var(--gray);
 }
 .file.selected {
-  background-color: var(--color);
+	background-color: var(--color-dark);
 }
 .file.enqueued {
-  color: var(--gray);
+	color: var(--gray);
 }
 
 .file td {
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+	max-width: 100px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 /*
-    PROGRESS
+		PROGRESS
 */
 .progressbar {
-  height: 2px;
-  background-color: var(--background);
+	height: 2px;
+	background-color: var(--background);
 }
 
 .progress {
-  background-color: var(--color-light);
-  width: 50%;
-  height: 100%;
+	background-color: var(--color-light);
+	width: 50%;
+	height: 100%;
 }
