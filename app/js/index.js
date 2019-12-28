@@ -9,10 +9,25 @@ const childProcess = require("child_process");
 $(document).ready(function() {
 	//console.log("be ready");
 	$("#execPath").click(function() {
-		selectExecutable();
+		openDialog((path) => {
+			$("#execPath").text(path);
+		}, {
+			properties: ["openFile"],
+			filters: [
+				{ name: "pleb test", extensions: ["js"] },
+				{ name: "Windows Executable", extensions: ["exe"] },
+			]
+		});
 	});
 	$("#addSrcDir").click(function() {
-		userAddDirectory();
+		openDialog((path) => {
+			new Directory(path);
+		}, { properties: ["openDirectory"] });
+	});
+	$("#outDir").click(function() {
+		openDialog((path) => {
+			$(this).text(path);
+		}, { properties: ["openDirectory"] });
 	});
 	$("#enqueue").click(function() {
 		flps.forEach((flp) => {
@@ -412,39 +427,15 @@ class Rendering {
 	}
 }
 
-function userAddDirectory() {
-	dialog.showOpenDialog(app.getCurrentWindow(), {
-		properties: ["openDirectory"],
-	}).then(result => {
-		if (!result.canceled) {
-			const file = result.filePaths[0];
-			new Directory(file);
-		}
-	}).catch(err => {
-		console.log(err);
-	});
-}
-
-function selectExecutable() {
-	dialog.showOpenDialog(app.getCurrentWindow(), {
-		properties: ["openFile"],
-		filters: [
-			{ name: "pleb test", extensions: ["js"] },
-			{ name: "Windows Executable", extensions: ["exe"] },
-		]
-	}).then(result => {
-		if (!result.canceled) {
-			const file = result.filePaths[0];
-			setExecPath(file);
-		}
-	}).catch(err => {
-		console.log(err);
-	});
-}
-
-function setExecPath(path) {
-	//console.log("Setting exec path to " + path);
-	$("#execPath").text(path);
+function openDialog(cb, options) {
+	dialog.showOpenDialog(app.getCurrentWindow(), options)
+		.then(result => {
+			if (!result.canceled) {
+				cb(result.filePaths[0]);
+			}
+		}).catch(err => {
+			console.log(err);
+		});
 }
 
 function getExecPath() {
@@ -452,7 +443,7 @@ function getExecPath() {
 }
 
 function getOutputDirectory() {
-	return "C:/tmp/";
+	return $("#outDir").text();
 }
 
 //
@@ -472,6 +463,7 @@ function saveDataSync() {
 	fs.writeFileSync(savefile, JSON.stringify(
 		{
 			execPath: getExecPath(),
+			outDir: getOutputDirectory(),
 			directories: directories.map((d) => d.path),
 			renderings: jRenderings
 		}, null, 2));
@@ -481,7 +473,7 @@ function saveDataSync() {
 function loadData() {
 	if (fs.existsSync(savefile)) {
 		const userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
-		setExecPath(userData.execPath);
+		$("#execPath").text(userData.execPath);
 		for (const key in userData.renderings) {
 			const r = userData.renderings[key];
 			renderings.set(key, new Rendering(r.output, new Date(r.date)));

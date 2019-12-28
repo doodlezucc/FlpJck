@@ -118,6 +118,7 @@ input:read-only {
 }
 
 .label {
+	font-weight: bold;
 	color: white;
 	white-space: nowrap;
 	margin-right: 5px;
@@ -137,7 +138,7 @@ button.shy {
 }
 button.shy:enabled:hover {
 	background: none;
-	color: var(--color);
+	color: white;
 }
 
 .directories {
