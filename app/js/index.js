@@ -305,6 +305,10 @@ class FLP {
 	}
 }
 
+function icon(name) {
+	return $("<i/>").addClass("fas fa-" + name);
+}
+
 class RenderTaskState {
 	constructor(name) {
 		this.name = name;
@@ -336,15 +340,16 @@ class RenderTask {
 			.append($("<h2/>").text(this.fileName))
 			.append($("<div/>")
 				.addClass("task-buttons")
-				.append($("<button/>")
-					.text("T")
-					.addClass("move")
-					.click(function() {
-						ref.moveToTop();
-					})
+				.append(
+					$("<button/>", { title: "Move to top" })
+						.append(icon("arrow-up"))
+						.addClass("move")
+						.click(function() {
+							ref.moveToTop();
+						})
 				)
-				.append($("<button/>")
-					.text("X")
+				.append($("<button/>", { title: "Remove from queue" })
+					.append(icon("times"))
 					.addClass("remove")
 					.click(function() {
 						ref.unprepare();
