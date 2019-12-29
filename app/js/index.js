@@ -44,8 +44,11 @@ $(document).ready(function() {
 		}
 	});
 
+	//isFlRunning(v => console.log(v));
+
 	window.setTimeout(() => {
-		flps.forEach((flp) => flp.enqueue());
+		//flps[0].enqueue();
+		//flps.forEach((flp) => flp.enqueue());
 	}, 1000);
 });
 
@@ -209,7 +212,7 @@ class Directory {
 
 	refreshFiles() {
 		walk(this.path, (file) => {
-			if (p.extname(file) === ".png" && !flps.some((flp) => flp.file === file)) {
+			if (p.extname(file) === ".flp" && !flps.some((flp) => flp.file === file)) {
 				new FLP(file, this);
 			}
 		}, (err, results) => {
@@ -268,7 +271,8 @@ class FLP {
 	}
 
 	get fileName() {
-		return p.basename(this.file);
+		const f = p.basename(this.file);
+		return f.substr(0, f.length - 4);
 	}
 
 	get lastModified() {
@@ -309,16 +313,13 @@ function icon(name) {
 	return $("<i/>").addClass("fas fa-" + name);
 }
 
-class RenderTaskState {
-	constructor(name) {
-		this.name = name;
-	}
-}
-
 const States = {
-	ENQUEUED: new RenderTaskState("Enqueued"),
-	OPENING_FILE: new RenderTaskState("Opening file"),
-	RENDERING: new RenderTaskState("Rendering"),
+	ENQUEUED: "Enqueued",
+	CLOSE_FRUITY_LOOPS: "Closing FL Studio",
+	COPY_SOURCE: "Copying flp",
+	OPEN_FILE: "Opening file",
+	RENDER: "Rendering",
+	COPY_PRODUCT: "Copying mp3",
 };
 
 class RenderTask {
@@ -333,7 +334,6 @@ class RenderTask {
 	 */
 	constructor(flp) {
 		const ref = this;
-		this.state = States.OPENING_FILE;
 		this.flp = flp;
 		this.jq = $("<div/>")
 			.addClass("task")
@@ -394,32 +394,76 @@ class RenderTask {
 
 	setState(state) {
 		this.state = state;
+		console.log(this.fileName + " : " + this.state);
 	}
 
 	render() {
-		this.pseudoRender();
-		//this.flRender();
+		RenderTask.isRendering = true;
+
+		//this.pseudoRender();
+		this.flRender();
+	}
+
+	closeFL(callback) {
+		console.log("Checking if FL is running");
+		isFlRunning((v) => {
+			console.log("FL running? " + v);
+			if (!v) {
+				callback();
+			} else {
+				this.setState(States.CLOSE_FRUITY_LOOPS);
+				childProcess.exec("taskkill /fi \"IMAGENAME eq " + p.basename(getExecPath()) + "\"", () => callback());
+			}
+		});
+	}
+
+	get safeDir() {
+		return app.app.getPath("temp");
+	}
+
+	get safePath() {
+		return p.join(this.safeDir, "temp.flp");
+	}
+
+	copySource(callback) {
+		console.log("Copying flp to " + this.safePath);
+		fs.copyFile(this.flp.file, this.safePath, callback);
+	}
+
+	copyProduct(callback) {
+		console.log("Copying product to " + this.output);
+		fs.copyFile(this.safePath, this.output, callback);
+	}
+
+	prepareRender(callback) {
+		this.closeFL(() => {
+			this.copySource(() => {
+				callback();
+			});
+		});
 	}
 
 	flRender() {
-		console.log("Rendering " + this.fileName);
-		RenderTask.isRendering = true;
-		this.setState(States.OPENING_FILE);
-		const cp = childProcess.spawn("cmd.exe", ["/C", "\"" + getExecPath() + "\" /Rpaths /Emp3 /OC:\\tmp C:\\tmp\\test.flp"], {
-			detached: true,
-			shell: true
-		});
-		cp.on("close", (code, signal) => {
-			//console.log("Exited with code " + code + ", signal " + signal);
-			if (code == 0) {
+		this.prepareRender(() => {
+			console.log("Rendering " + this.fileName);
+			this.setState(States.RENDER);
+			const command = "cmd.exe /C \"" + getExecPath() + "\" /R /Emp3 " + this.safePath;
+			console.log(command);
+			const cp = childProcess.spawn("start", ["/min", "", command], {
+				shell: true,
+			});
+			cp.on("close", (code, signal) => {
+				//console.log("Exited with code " + code + ", signal " + signal);
+				this.copyProduct(() => {
+					console.log("copied");
+				});
 				this.onRenderDone();
-			}
-		})
+			});
+		});
 	}
 
 	pseudoRender() {
 		console.log("PSEUDO rendering " + this.fileName);
-		RenderTask.isRendering = true;
 		let i = 0;
 		const timeout = setInterval(() => {
 			this.setProgress(i / 100);
@@ -432,7 +476,6 @@ class RenderTask {
 	}
 
 	onRenderDone() {
-		console.log("done!");
 		RenderTask.isRendering = false;
 		this.jq.remove();
 		this.flp.onRenderTaskDone(this.output);
@@ -440,7 +483,7 @@ class RenderTask {
 	}
 
 	get output() {
-		return "C:/tmp/";
+		return p.join(getOutputDirectory(), this.fileName + ".mp3");
 	}
 
 	static checkQueue() {
@@ -451,6 +494,16 @@ class RenderTask {
 			}
 		}
 	}
+}
+
+function isFlRunning(callback) {
+	const imageName = p.basename(getExecPath());
+	childProcess.exec("tasklist /fi \"IMAGENAME eq " + imageName + "\"", (err, stdout, stderr) => {
+		if (stdout.includes(imageName)) {
+			return callback(true);
+		}
+		callback(false);
+	});
 }
 
 class Rendering {
