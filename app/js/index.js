@@ -5,6 +5,31 @@ const dialog = app.dialog;
 const fs = require("fs");
 const p = require("path");
 const childProcess = require("child_process");
+const regedit = require("regedit");
+
+let flShowSplash;
+const flMidiFormPath = "HKCU\\SOFTWARE\\Image-Line\\FL Studio 20\\General\\MIDIForm";
+
+function regSetSplashScreen(v, callback) {
+	console.log("Setting show splash screen value to " + v);
+	const valuesToPut = {
+		[flMidiFormPath]: {
+			"SplashBox": {
+				value: v + "",
+				type: "REG_SZ"
+			}
+		}
+	}
+	regedit.putValue(valuesToPut, (err) => {
+		if (err) {
+			console.log("ERROR PUTTING VALUE");
+			console.log(err);
+		} else {
+			//console.log("crazy son of a bitch");
+			callback();
+		}
+	});
+}
 
 $(document).ready(function() {
 	//console.log("be ready");
@@ -405,9 +430,9 @@ class RenderTask {
 	}
 
 	closeFL(callback) {
-		console.log("Checking if FL is running");
+		//console.log("Checking if FL is running");
 		isFlRunning((v) => {
-			console.log("FL running? " + v);
+			//console.log("FL running? " + v);
 			if (!v) {
 				callback();
 			} else {
@@ -426,19 +451,44 @@ class RenderTask {
 	}
 
 	copySource(callback) {
-		console.log("Copying flp to " + this.safePath);
+		//console.log("Copying flp to " + this.safePath);
 		fs.copyFile(this.flp.file, this.safePath, callback);
 	}
 
 	copyProduct(callback) {
-		console.log("Copying product to " + this.output);
-		fs.copyFile(this.safePath, this.output, callback);
+		//console.log("Copying " + p.join(this.safeDir, this.fileName + ".mp3") + " to " + this.output);
+		fs.copyFile(p.join(this.safeDir, "temp.mp3"), this.output, callback);
+	}
+
+	prepareFL(callback) {
+		//console.log("Preparing");
+		if (flShowSplash != undefined) {
+			callback();
+		} else {
+			regedit.list(flMidiFormPath, function(err, result) {
+				if (err) {
+					return console.log(err);
+				} else {
+					//console.log(result);
+					flShowSplash = result[flMidiFormPath].values["SplashBox"].value;
+					//console.log(flShowSplash);
+					//console.log(typeof flShowSplash);
+					if (flShowSplash === "0") {
+						callback();
+					} else {
+						regSetSplashScreen(0, () => callback());
+					}
+				}
+			});
+		}
 	}
 
 	prepareRender(callback) {
 		this.closeFL(() => {
-			this.copySource(() => {
-				callback();
+			this.prepareFL(() => {
+				this.copySource(() => {
+					callback();
+				});
 			});
 		});
 	}
@@ -448,14 +498,14 @@ class RenderTask {
 			console.log("Rendering " + this.fileName);
 			this.setState(States.RENDER);
 			const command = "cmd.exe /C \"" + getExecPath() + "\" /R /Emp3 " + this.safePath;
-			console.log(command);
+			//console.log(command);
 			const cp = childProcess.spawn("start", ["/min", "", command], {
 				shell: true,
 			});
 			cp.on("close", (code, signal) => {
 				//console.log("Exited with code " + code + ", signal " + signal);
 				this.copyProduct(() => {
-					console.log("copied");
+					//console.log("copied");
 				});
 				this.onRenderDone();
 			});
@@ -491,6 +541,11 @@ class RenderTask {
 			if (this.taskQueue.length) {
 				const next = this.taskQueue.shift();
 				next.render();
+			} else if (flShowSplash === "1") {
+				regSetSplashScreen(1, () => {
+					//console.log("Got your splash screen back");
+				});
+				flShowSplash = undefined;
 			}
 		}
 	}
