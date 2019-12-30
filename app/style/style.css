@@ -308,6 +308,9 @@ input:read-only {
 .file.enqueued {
 	color: var(--gray);
 }
+.file.up-to-date {
+	color: var(--color);
+}
 
 .file td {
 	max-width: 100px;

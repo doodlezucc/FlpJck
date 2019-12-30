@@ -282,7 +282,8 @@ class FLP {
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>").text(this.lastModified.toLocaleString()))
-			.append($("<td/>").text(this.lastRender ? this.lastRender.toLocaleString() : "Never"));
+			.append($("<td/>"));
+		this.updateRenderDisplay();
 		if (index < 0) {
 			multiSelectTable.jq.append(this.jq);
 		} else {
@@ -320,16 +321,24 @@ class FLP {
 		this.task = null;
 		this.jq.removeClass("enqueued");
 		renderings.set(this.file, new Rendering(output, new Date()));
-		this.jq.children().eq(3).text(this.lastRender.toLocaleString());
-		//console.log(renderings);
+		this.updateRenderDisplay();
 		saveDataSync();
 	}
 
-	get lastRender() {
-		return this.lastRendering ? this.lastRendering.date : null;
+	updateRenderDisplay() {
+		this.jq.children().eq(3).text(this.lastRender ? this.lastRender.toLocaleString() : "Never");
+		if (this.lastRender && this.lastModified < this.lastRender) {
+			this.jq.addClass("up-to-date");
+		} else {
+			this.jq.removeClass("up-to-date");
+		}
 	}
 
-	get lastRendering() {
+	get lastRender() {
+		return this.rendering ? this.rendering.date : null;
+	}
+
+	get rendering() {
 		return renderings.get(this.file);
 	}
 }
