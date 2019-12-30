@@ -6,6 +6,7 @@ const fs = require("fs");
 const p = require("path");
 const childProcess = require("child_process");
 const regedit = require("regedit");
+const chokidar = require("chokidar");
 
 let flShowSplash;
 const flMidiFormPath = "HKCU\\SOFTWARE\\Image-Line\\FL Studio 20\\General\\MIDIForm";
@@ -223,6 +224,15 @@ class Directory {
 		$(".directories").children().last().before(this.jq);
 		this.files = [];
 		this.refreshFiles();
+		this.watcher = chokidar.watch(this.path, {
+			ignoreInitial: true
+		});
+		this.watcher.on("add", (path, stats) => {
+			if (!flps.some((flp) => flp.file === path)) {
+				//console.log("flp add " + path);
+				new FLP(path, this);
+			}
+		});
 	}
 
 	remove() {
@@ -290,6 +300,20 @@ class FLP {
 			multiSelectTable.jq.children().eq(index).before(this.jq);
 		}
 		multiSelectTable.register(this.jq);
+
+		this.watcher = chokidar.watch(file, {
+			ignoreInitial: true
+		});
+		this.watcher.on("unlink", () => {
+			this.remove();
+		})
+		this.watcher.on("change", (path, stats) => {
+			const oldSize = this.stats.size;
+			this.stats = stats;
+			if (stats.size != oldSize) {
+				this.jq.children().eq(2).text(this.lastModified.toLocaleString());
+			}
+		});
 	}
 
 	get directoryName() {
