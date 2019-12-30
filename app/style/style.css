@@ -4,20 +4,21 @@
 }
 
 body {
-	--background: hsl(170, 40%, 30%);
-	--color-light: hsl(150, 100%, 75%);
-	--color: hsl(170, 28%, 55%);
-	--color-dark: hsl(170, 35%, 35%);
-	--gray-dark: hsl(0, 0%, 15%);
+	--color-light: hsl(33, 100%, 75%);
+	--color: hsl(33, 28%, 55%);
+	--color-dark: hsl(33, 35%, 35%);
 	--gray: hsl(0, 0%, 30%);
-	--color-bad: hsl(352, 100%, 71%);
-	--spacing: 10px;
+	--gray-dark: hsl(0, 0%, 15%);
+	--color-bad: hsl(12, 100%, 71%);
+	--color-highlight: hsl(54, 100%, 83%);
+
+	--spacing: 2px;
 	--task-window-width: 175px;
-	--settings-height: 78px;
-	--spacing-top: 0px;
+	--settings-height: 81px;
+	--menu-height: 30px;
 	--head-height: 30px;
 
-	background: var(--background);
+	background: var(--color-highlight);
 	color: white;
 	font-family: Rubik;
 	font-size: 16px;
@@ -56,22 +57,34 @@ button:enabled:hover {
 .interface {
 	display: block;
 	position: absolute;
-	top: var(--spacing-top);
+	top: var(--menu-height);
 	width: 100%;
 }
 
 .bottom-container {
 	display: flex;
 	position: fixed;
-	top: calc(var(--settings-height) + var(--spacing-top) + var(--spacing));
+	top: calc(var(--settings-height) + var(--menu-height) + var(--spacing));
 	right: 0;
 	left: 0;
 	bottom: 0;
 	margin: var(--spacing);
 }
 
-.scroll::-webkit-scrollbar {
-	display: none;
+::-webkit-scrollbar {
+	width: 10px;
+	height: 5px;
+	background: none;
+}
+::-webkit-scrollbar-track {
+	background: var(--gray-dark);
+	border-left: 1px solid var(--gray);
+}
+::-webkit-scrollbar-thumb {
+	background-color: #fff6;
+}
+::-webkit-scrollbar-thumb:hover {
+	background-color: #fffa;
 }
 
 th {
@@ -79,7 +92,7 @@ th {
 }
 
 /*
-		INPUT
+	INPUT
 */
 input {
 	outline: none;
@@ -102,12 +115,11 @@ input:read-only {
 }
 
 /*
-		SETTINGS
+	SETTINGS
 */
 .settings {
 	background-color: var(--gray-dark);
 	padding: 5px;
-	border: 1px solid white;
 	overflow-y: auto;
 	overflow-x: hidden;
 	height: var(--settings-height);
@@ -115,21 +127,24 @@ input:read-only {
 }
 
 .setting {
-	margin: 2px;
 	width: 100%;
+	display: inline-flex;
+	text-overflow: ellipsis;
+	position: relative;
+	border-bottom: 1px solid var(--gray);
+	padding-bottom: 3px;
+	margin-bottom: 3px;
+}
+.setting:last-child {
+	margin-bottom: 0;
+	padding-bottom: 0;
+	border: none;
 }
 
 .label {
-	font-weight: bold;
-	color: white;
+	color: var(--color-highlight);
 	white-space: nowrap;
 	margin-right: 5px;
-}
-
-.setting {
-	display: inline-flex;
-	align-items: center;
-	text-overflow: ellipsis;
 }
 
 .directories {
@@ -141,10 +156,10 @@ input:read-only {
 	cursor: pointer;
 	margin-right: 5px;
 	align-self: center;
+	color: white;
 }
 .directory:not(:last-child)::after {
 	content: ",";
-	color: white;
 	cursor: default;
 }
 .directory:not(.loading):hover {
@@ -155,14 +170,13 @@ input:read-only {
 }
 
 /*
-		TASKS
+	TASKS
 */
 .task-window {
 	position: absolute;
 	display: flex;
 	flex-direction: column;
 	width: var(--task-window-width);
-	border: 1px solid white;
 	box-sizing: border-box;
 	background-color: var(--gray);
 	bottom: 0;
@@ -171,14 +185,13 @@ input:read-only {
 }
 
 .tools {
-	min-height: calc(var(--head-height) - 1px);
+	min-height: var(--head-height);
 	background-color: var(--gray-dark);
 	border-bottom: 1px solid white;
 	box-sizing: border-box;
 }
 .tools button {
 	padding: 2px 4px;
-	border-radius: 0;
 	height: 100%;
 }
 .tools button:disabled {
@@ -248,19 +261,8 @@ input:read-only {
 }
 
 /*
-		FILES
+	FILES
 */
-.border {
-		display: block;
-		z-index: 10;
-		border: 1px solid white;
-		left: 0;
-		bottom: 0;
-		right: calc(var(--task-window-width) + var(--spacing));
-		top: 0;
-		position: absolute;
-		pointer-events: none;
-}
 .file-container {
 	border-collapse: separate;
 	border-spacing: 0;
@@ -284,7 +286,6 @@ input:read-only {
 	z-index: 2;
 	background-color: var(--gray-dark);
 	border-bottom: 1px solid;
-	border-right: 1px solid;
 	box-sizing: border-box;
 	height: var(--head-height);
 }
@@ -313,21 +314,47 @@ input:read-only {
 }
 
 .file td {
-	max-width: 100px;
+	max-width: 60px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
 /*
-		PROGRESS
+	PROGRESS
 */
 .progressbar {
 	height: 2px;
-	background-color: var(--background);
+	background-color: var(--color-dark);
 }
 
 .progress {
 	background-color: var(--color-light);
 	width: 50%;
 	height: 100%;
+}
+
+/*
+	MENU
+*/
+.menu {
+	background-color: var(--gray-dark);
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: var(--menu-height);
+	display: flex;
+}
+
+.menu > * {
+	height: 100%;
+	padding: 5px;
+	border-radius: 0;
+}
+.menu :disabled {
+	color: white;
+	width: 100%;
+}
+.menu button:enabled:hover {
+	background-color: var(--gray);
 }

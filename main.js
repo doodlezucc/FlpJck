@@ -4,20 +4,7 @@ const el = require("electron");
 require("electron-reload")(__dirname);
 
 function createWindow() {
-	// var menu = el.Menu.buildFromTemplate([
-	// 	{
-	// 		label: 'Menu',
-	// 		submenu: [
-	// 			{
-	// 				label: 'Exit',
-	// 				click() {
-	// 					app.quit();
-	// 				}
-	// 			}
-	// 		]
-	// 	}
-	// ]);
-	// el.Menu.setApplicationMenu(menu);
+	el.Menu.setApplicationMenu(null);
 
 	let win = new el.BrowserWindow({
 		width: 600,
