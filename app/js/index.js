@@ -12,6 +12,10 @@ const customTitlebar = require("custom-electron-titlebar");
 let flShowSplash;
 const flMidiFormPath = "HKCU\\SOFTWARE\\Image-Line\\FL Studio 20\\General\\MIDIForm";
 
+window.onerror = (event, source, lineno, colno, error) => {
+	dialog.showErrorBox("Some kind of error ocurred while running FlpJck", error.stack);
+};
+
 function regSetSplashScreen(v, callback) {
 	console.log("Setting show splash screen value to " + v);
 	const valuesToPut = {
