@@ -76,13 +76,6 @@ $(document).ready(function() {
 			multiSelectTable.gatherSelected();
 		}
 	});
-
-	//isFlRunning(v => console.log(v));
-
-	window.setTimeout(() => {
-		//flps[0].enqueue();
-		//flps.forEach((flp) => flp.enqueue());
-	}, 1000);
 });
 
 class MultiSelectTable {
@@ -431,7 +424,7 @@ class RenderTask {
 					.append(icon("times"))
 					.addClass("remove")
 					.click(function() {
-						ref.removeFromQueue();
+						ref.remove();
 					})
 				)
 			)
@@ -442,13 +435,24 @@ class RenderTask {
 			).appendTo($(".task-container"));
 		RenderTask.taskQueue.push(this);
 		this.setState(States.ENQUEUED, 0);
+		this.updateRemaining();
 		RenderTask.checkQueue();
 	}
 
-	removeFromQueue() {
+	remove() {
 		RenderTask.taskQueue = RenderTask.taskQueue.filter((task) => task !== this);
 		this.jq.remove();
 		this.flp.jq.removeClass("enqueued");
+		this.updateRemaining();
+	}
+
+	updateRemaining() {
+		const remaining = $(".task-container").children().length;
+		if (remaining > 0) {
+			$("#remaining").text(remaining + " left");
+		} else {
+			$("#remaining").text("");
+		}
 	}
 
 	moveToTop() {
@@ -596,6 +600,7 @@ class RenderTask {
 		this.jq.remove();
 		this.flp.onRenderTaskDone(this.output);
 		RenderTask.checkQueue();
+		this.updateRemaining();
 	}
 
 	get output() {
