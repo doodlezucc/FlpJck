@@ -9,7 +9,7 @@ body {
 	--color-dark: hsl(33, 35%, 35%);
 	--gray: hsl(0, 0%, 30%);
 	--gray-dark: hsl(0, 0%, 20%);
-	--color-bad: hsl(12, 100%, 71%);
+	--color-bad: hsl(12, 67%, 57%);
 	--color-highlight: hsl(54, 100%, 83%);
 
 	--spacing: 2px;
@@ -44,6 +44,9 @@ body {
 }
 .keybinding {
 	padding: 0 20px !important;
+}
+html .titlebar .window-controls-container .window-icon-bg.window-close-bg:hover {
+    background-color: var(--color-bad) !important;
 }
 
 h1 {
@@ -343,7 +346,7 @@ input:read-only {
 	background-color: var(--color-dark);
 }
 .file.enqueued {
-	color: var(--gray);
+	color: var(--color-dark);
 }
 .file.up-to-date {
 	color: var(--color);

@@ -9,6 +9,10 @@ const regedit = require("regedit");
 const chokidar = require("chokidar");
 const customTitlebar = require("custom-electron-titlebar");
 
+const titleBar = new customTitlebar.Titlebar({
+	drag: true,
+});
+
 let flShowSplash;
 const flMidiFormPath = "HKCU\\SOFTWARE\\Image-Line\\FL Studio 20\\General\\MIDIForm";
 
@@ -41,26 +45,36 @@ $(document).ready(function() {
 	//console.log("be ready");
 	$("#execPath").click(function() {
 		openDialog((path) => {
-			$("#execPath").text(path);
+			$(this).text(path);
+			saveDataSync();
 		}, {
 			properties: ["openFile"],
 			filters: [
 				{ name: "Windows Executable", extensions: ["exe"] },
 			],
-			title: "Locate the Fruity Loops executable to use"
+			title: "Locate the Fruity Loops executable to use",
+			defaultPath: p.dirname($(this).text())
 		});
 	});
 	$("#addSrcDir").click(function() {
 		openDialog((path) => {
 			new Directory(path);
-		}, { properties: ["openDirectory"], title: "Add a directory containing Fruity Loops projects" });
-		saveDataSync();
+			saveDataSync();
+		}, {
+			properties: ["openDirectory"],
+			title: "Add a directory containing Fruity Loops projects",
+			defaultPath: app.app.getPath("documents")
+		});
 	});
 	$("#outDir").click(function() {
 		openDialog((path) => {
 			$(this).text(path);
 			saveDataSync();
-		}, { properties: ["openDirectory"], title: "Select an output directory" });
+		}, {
+			properties: ["openDirectory"],
+			title: "Select an output directory",
+			defaultPath: $(this).text()
+		});
 	});
 	$("#enqueue").click(function() {
 		flps.forEach((flp) => {
@@ -694,13 +708,16 @@ function saveDataSync() {
 function loadData() {
 	if (fs.existsSync(savefile)) {
 		const userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
-		$("#execPath").text(userData.execPath);
 		$("#outDir").text(userData.outDir);
+		$("#execPath").text(userData.execPath);
 		for (const key in userData.renderings) {
 			const r = userData.renderings[key];
 			renderings.set(key, new Rendering(r.output, new Date(r.date)));
 		}
 		userData.directories.forEach((path) => new Directory(path));
+	} else {
+		$("#outDir").text(app.app.getPath("music"));
+		$("#execPath").text("C:\\Program Files (x86)\\Image-Line\\FL Studio 20\\FL64.exe");
 	}
 }
 
@@ -711,10 +728,6 @@ function onClickAbout() {
 }
 
 function createTitleBar() {
-	const titleBar = new customTitlebar.Titlebar({
-		drag: true,
-	});
-
 	const selectAllUnrendered = function() {
 		multiSelectTable.selectMatching((flp) => !flp.lastRender);
 	}
