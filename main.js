@@ -7,12 +7,11 @@ function createWindow() {
 	//el.Menu.setApplicationMenu(null);
 
 	let win = new el.BrowserWindow({
-		width: 600,
+		width: 650,
 		height: 400,
 		webPreferences: {
 			nodeIntegration: true
 		},
-		alwaysOnTop: true,
 		frame: false
 	});
 

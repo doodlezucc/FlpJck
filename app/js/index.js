@@ -22,6 +22,7 @@ window.onerror = (event, source, lineno, colno, error) => {
 
 function regSetSplashScreen(v, callback) {
 	console.log("Setting show splash screen value to " + v);
+	app.getCurrentWindow().setAlwaysOnTop(v == 0);
 	const valuesToPut = {
 		[flMidiFormPath]: {
 			"SplashBox": {
@@ -33,7 +34,7 @@ function regSetSplashScreen(v, callback) {
 	regedit.putValue(valuesToPut, (err) => {
 		if (err) {
 			console.log("ERROR PUTTING VALUE");
-			console.log(err);
+			throw err;
 		} else {
 			//console.log("crazy son of a bitch");
 			callback();
