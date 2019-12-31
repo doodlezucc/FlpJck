@@ -45,22 +45,22 @@ $(document).ready(function() {
 		}, {
 			properties: ["openFile"],
 			filters: [
-				{ name: "pleb test", extensions: ["js"] },
 				{ name: "Windows Executable", extensions: ["exe"] },
-			]
+			],
+			title: "Locate the Fruity Loops executable to use"
 		});
 	});
 	$("#addSrcDir").click(function() {
 		openDialog((path) => {
 			new Directory(path);
-		}, { properties: ["openDirectory"] });
+		}, { properties: ["openDirectory"], title: "Add a directory containing Fruity Loops projects" });
 		saveDataSync();
 	});
 	$("#outDir").click(function() {
 		openDialog((path) => {
 			$(this).text(path);
 			saveDataSync();
-		}, { properties: ["openDirectory"] });
+		}, { properties: ["openDirectory"], title: "Select an output directory" });
 	});
 	$("#enqueue").click(function() {
 		flps.forEach((flp) => {
@@ -643,6 +643,11 @@ class Rendering {
 	}
 }
 
+/**
+ * 
+ * @param {*} cb 
+ * @param {Electron.OpenDialogOptions} options 
+ */
 function openDialog(cb, options) {
 	dialog.showOpenDialog(app.getCurrentWindow(), options)
 		.then(result => {
