@@ -391,11 +391,10 @@ function icon(name) {
 
 const States = {
 	ENQUEUED: "Enqueued",
-	CLOSE_FRUITY_LOOPS: "Closing FL Studio",
-	COPY_SOURCE: "Copying flp",
-	OPEN_FILE: "Opening file",
+	PREPARE_FL: "Preparing FL Studio",
+	CLOSE_FL: "Closing FL Studio",
 	RENDER: "Rendering",
-	COPY_PRODUCT: "Copying mp3",
+	DONE: "Done",
 };
 
 class RenderTask {
@@ -428,7 +427,7 @@ class RenderTask {
 					.append(icon("times"))
 					.addClass("remove")
 					.click(function() {
-						ref.unprepare();
+						ref.removeFromQueue();
 					})
 				)
 			)
@@ -438,11 +437,11 @@ class RenderTask {
 					.append($("<div/>").addClass("progress"))
 			).appendTo($(".task-container"));
 		RenderTask.taskQueue.push(this);
-		this.setState(States.ENQUEUED);
+		this.setState(States.ENQUEUED, 0);
 		RenderTask.checkQueue();
 	}
 
-	unprepare() {
+	removeFromQueue() {
 		RenderTask.taskQueue = RenderTask.taskQueue.filter((task) => task !== this);
 		this.jq.remove();
 		this.flp.jq.removeClass("enqueued");
@@ -468,9 +467,10 @@ class RenderTask {
 		return this.flp.fileName;
 	}
 
-	setState(state) {
+	setState(state, progress) {
 		this.state = state;
 		console.log(this.fileName + " : " + this.state);
+		this.setProgress(progress);
 	}
 
 	render() {
@@ -480,15 +480,14 @@ class RenderTask {
 		this.flRender();
 	}
 
-	closeFL(callback) {
+	closeFL(callback, force) {
 		//console.log("Checking if FL is running");
 		isFlRunning((v) => {
 			//console.log("FL running? " + v);
 			if (!v) {
 				callback();
 			} else {
-				this.setState(States.CLOSE_FRUITY_LOOPS);
-				childProcess.exec("taskkill /fi \"IMAGENAME eq " + p.basename(getExecPath()) + "\"", () => callback());
+				childProcess.exec("taskkill /fi \"IMAGENAME eq " + p.basename(getExecPath()) + (!force ? "\"" : "\" /f"), () => callback());
 			}
 		});
 	}
@@ -496,23 +495,24 @@ class RenderTask {
 	get safeDir() {
 		return app.app.getPath("temp");
 	}
-
 	get safePath() {
-		return p.join(this.safeDir, "temp2.flp");
+		return p.join(this.safeDir, "FlpJck.flp");
+	}
+	get safeProductPath() {
+		return p.join(this.safeDir, "out.mp3");
 	}
 
 	copySource(callback) {
 		//console.log("Copying flp to " + this.safePath);
 		fs.copyFile(this.flp.file, this.safePath, callback);
 	}
-
 	copyProduct(callback) {
 		//console.log("Copying " + p.join(this.safeDir, this.fileName + ".mp3") + " to " + this.output);
-		fs.copyFile(p.join(this.safeDir, "out.mp3"), this.output, callback);
+		fs.copyFile(this.safeProductPath, this.output, callback);
 	}
 
 	prepareFL(callback) {
-		//console.log("Preparing");
+		this.setState(States.PREPARE_FL, 0.15);
 		if (flShowSplash != undefined) {
 			callback();
 		} else {
@@ -535,6 +535,7 @@ class RenderTask {
 	}
 
 	prepareRender(callback) {
+		this.setState(States.CLOSE_FL, 0.1);
 		this.closeFL(() => {
 			this.prepareFL(() => {
 				this.copySource(() => {
@@ -546,14 +547,23 @@ class RenderTask {
 
 	flRender() {
 		this.prepareRender(() => {
-			console.log("Rendering " + this.fileName);
-			this.setState(States.RENDER);
+			this.setState(States.RENDER, 0.2);
+
+			const outputWatcher = chokidar.watch(this.safeProductPath, {
+				awaitWriteFinish: true
+			});
+			outputWatcher.on("unlink", () => {
+				this.setState(States.CLOSE_FL, 0.9);
+				this.closeFL(() => { }, true); // Force close FL after render
+			});
+
 			const command = "cmd.exe /C \"" + getExecPath() + "\" /Rout /Emp3 " + this.safePath;
 			//console.log(command);
 			const cp = childProcess.spawn("start", ["/min", "", command], {
 				shell: true,
 			});
 			cp.on("close", (code, signal) => {
+				outputWatcher.close();
 				//console.log("Exited with code " + code + ", signal " + signal);
 				this.copyProduct(() => {
 					//console.log("copied");
@@ -577,6 +587,7 @@ class RenderTask {
 	}
 
 	onRenderDone() {
+		this.setState(States.DONE);
 		RenderTask.isRendering = false;
 		this.jq.remove();
 		this.flp.onRenderTaskDone(this.output);
