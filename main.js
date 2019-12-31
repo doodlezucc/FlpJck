@@ -4,7 +4,7 @@ const el = require("electron");
 require("electron-reload")(__dirname);
 
 function createWindow() {
-	el.Menu.setApplicationMenu(null);
+	//el.Menu.setApplicationMenu(null);
 
 	let win = new el.BrowserWindow({
 		width: 600,
@@ -12,14 +12,11 @@ function createWindow() {
 		webPreferences: {
 			nodeIntegration: true
 		},
-		alwaysOnTop: true
+		alwaysOnTop: true,
+		frame: false
 	});
 
 	win.loadFile("app/index.html");
-
-	win.on('close', function(e) { //   <---- Catch close event
-		e.preventDefault();
-	});
 }
 
 el.app.on("ready", createWindow);

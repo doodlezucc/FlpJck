@@ -8,7 +8,7 @@ body {
 	--color: hsl(33, 28%, 55%);
 	--color-dark: hsl(33, 35%, 35%);
 	--gray: hsl(0, 0%, 30%);
-	--gray-dark: hsl(0, 0%, 15%);
+	--gray-dark: hsl(0, 0%, 20%);
 	--color-bad: hsl(12, 100%, 71%);
 	--color-highlight: hsl(54, 100%, 83%);
 
@@ -26,6 +26,24 @@ body {
 	cursor: default;
 	user-select: none;
 	position: relative;
+}
+
+.titlebar {
+	background-color: var(--color-dark) !important;
+}
+.container-after-titlebar {
+	position: fixed !important;
+	padding: var(--spacing);
+}
+.action-label {
+	padding: 0 20px 0 0 !important;
+}
+.menu-item-icon {
+	width: 20px !important;
+	margin: 0 !important;
+}
+.keybinding {
+	padding: 0 20px !important;
 }
 
 h1 {
@@ -57,8 +75,8 @@ button:enabled:hover {
 .interface {
 	display: block;
 	position: absolute;
-	top: var(--menu-height);
-	width: 100%;
+	top: var(--spacing);
+	width: calc(100% - 2 * var(--spacing));
 }
 
 .bottom-container {
@@ -73,10 +91,16 @@ button:enabled:hover {
 
 ::-webkit-scrollbar {
 	width: 10px;
-	height: 5px;
+	height: 10px;
 	background: none;
 }
 ::-webkit-scrollbar-track {
+	background: var(--gray-dark);
+}
+::-webkit-scrollbar-track:horizontal {
+	border-top: 1px solid var(--gray);
+}
+::-webkit-scrollbar-track:vertical {
 	background: var(--gray-dark);
 	border-left: 1px solid var(--gray);
 }
@@ -85,6 +109,9 @@ button:enabled:hover {
 }
 ::-webkit-scrollbar-thumb:hover {
 	background-color: #fffa;
+}
+::-webkit-scrollbar-corner {
+	background-color: var(--gray);
 }
 
 th {
@@ -331,30 +358,4 @@ input:read-only {
 	background-color: var(--color-light);
 	width: 50%;
 	height: 100%;
-}
-
-/*
-	MENU
-*/
-.menu {
-	background-color: var(--gray-dark);
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: var(--menu-height);
-	display: flex;
-}
-
-.menu > * {
-	height: 100%;
-	padding: 5px;
-	border-radius: 0;
-}
-.menu :disabled {
-	color: white;
-	width: 100%;
-}
-.menu button:enabled:hover {
-	background-color: var(--gray);
 }

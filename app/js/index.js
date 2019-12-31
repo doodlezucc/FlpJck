@@ -7,6 +7,7 @@ const p = require("path");
 const childProcess = require("child_process");
 const regedit = require("regedit");
 const chokidar = require("chokidar");
+const customTitlebar = require("custom-electron-titlebar");
 
 let flShowSplash;
 const flMidiFormPath = "HKCU\\SOFTWARE\\Image-Line\\FL Studio 20\\General\\MIDIForm";
@@ -49,10 +50,12 @@ $(document).ready(function() {
 		openDialog((path) => {
 			new Directory(path);
 		}, { properties: ["openDirectory"] });
+		saveDataSync();
 	});
 	$("#outDir").click(function() {
 		openDialog((path) => {
 			$(this).text(path);
+			saveDataSync();
 		}, { properties: ["openDirectory"] });
 	});
 	$("#enqueue").click(function() {
@@ -109,10 +112,36 @@ class MultiSelectTable {
 		} else {
 			this.clearSelection();
 			if (row.hasClass("enqueued")) return;
-			row.addClass("selected");
+			this.markSelected(row);
 			this.pivot = this.getIndex(row);
 		}
 		this.gatherSelected();
+	}
+
+	/**
+	 * @param {JQuery} row 
+	 */
+	markSelected(row) {
+		if (!row.hasClass("enqueued")) {
+			row.addClass("selected");
+		}
+	}
+
+	/**
+	 * @param {(flp: FLP) => boolean} test
+	 * @param {boolean} doBreak 
+	 */
+	selectMatching(test, doBreak) {
+		multiSelectTable.clearSelection();
+		for (let i = 0; i < flps.length; i++) {
+			const flp = flps[i];
+			if (test(flp)) {
+				multiSelectTable.markSelected(flp.jq);
+			} else if (doBreak) {
+				break;
+			}
+		}
+		multiSelectTable.gatherSelected();
 	}
 
 	gatherSelected() {
@@ -143,9 +172,7 @@ class MultiSelectTable {
 
 		for (let i = start; i <= end; i++) {
 			const row = this.getRow(i);
-			if (!row.hasClass("enqueued")) {
-				row.addClass("selected");
-			}
+			this.markSelected(row);
 		}
 		this.gatherSelected();
 	}
@@ -165,20 +192,6 @@ let flps = [];
  * 	@type {Map<string, Rendering>}
  */
 let renderings = new Map();
-
-const { Menu, MenuItem } = app;
-
-const menu = new Menu()
-menu.append(new MenuItem({ label: "Start rendering", click() { console.log("yeesh") } }))
-menu.append(new MenuItem({ type: 'separator' }))
-menu.append(new MenuItem({ label: 'MenuItem2', type: 'checkbox', checked: true }))
-
-window.addEventListener('contextmenu', (e) => {
-	e.preventDefault();
-	menu.popup({ window: app.getCurrentWindow() });
-}, false);
-
-
 
 /**
  * get all files inside a directory (recursive)
@@ -243,6 +256,7 @@ class Directory {
 				flp.remove();
 			}
 		});
+		saveDataSync();
 	}
 
 	refreshFiles() {
@@ -271,7 +285,6 @@ class FLP {
 	 */
 	constructor(file, directory) {
 		this.stats = fs.statSync(file);
-		this.lmao = this.stats.mtime.toLocaleString();
 		this.file = file;
 		this.directory = directory;
 		let index = -1;
@@ -312,6 +325,7 @@ class FLP {
 			this.stats = stats;
 			if (stats.size != oldSize) {
 				this.jq.children().eq(2).text(this.lastModified.toLocaleString());
+				this.updateRenderDisplay();
 			}
 		});
 	}
@@ -349,9 +363,13 @@ class FLP {
 		saveDataSync();
 	}
 
+	get upToDate() {
+		return this.lastRender && this.lastModified < this.lastRender;
+	}
+
 	updateRenderDisplay() {
 		this.jq.children().eq(3).text(this.lastRender ? this.lastRender.toLocaleString() : "Never");
-		if (this.lastRender && this.lastModified < this.lastRender) {
+		if (this.upToDate) {
 			this.jq.addClass("up-to-date");
 		} else {
 			this.jq.removeClass("up-to-date");
@@ -480,7 +498,7 @@ class RenderTask {
 	}
 
 	get safePath() {
-		return p.join(this.safeDir, "temp.flp");
+		return p.join(this.safeDir, "temp2.flp");
 	}
 
 	copySource(callback) {
@@ -490,7 +508,7 @@ class RenderTask {
 
 	copyProduct(callback) {
 		//console.log("Copying " + p.join(this.safeDir, this.fileName + ".mp3") + " to " + this.output);
-		fs.copyFile(p.join(this.safeDir, "temp.mp3"), this.output, callback);
+		fs.copyFile(p.join(this.safeDir, "out.mp3"), this.output, callback);
 	}
 
 	prepareFL(callback) {
@@ -530,7 +548,7 @@ class RenderTask {
 		this.prepareRender(() => {
 			console.log("Rendering " + this.fileName);
 			this.setState(States.RENDER);
-			const command = "cmd.exe /C \"" + getExecPath() + "\" /R /Emp3 " + this.safePath;
+			const command = "cmd.exe /C \"" + getExecPath() + "\" /Rout /Emp3 " + this.safePath;
 			//console.log(command);
 			const cp = childProcess.spawn("start", ["/min", "", command], {
 				shell: true,
@@ -663,9 +681,72 @@ function loadData() {
 
 loadData();
 
-app.getCurrentWindow().removeAllListeners();
+function onClickAbout() {
+	console.log("todo about");
+}
 
-app.getCurrentWindow().on("close", function(e) {
-	saveDataSync();
-	app.getCurrentWindow().destroy();
-});
+function createTitleBar() {
+	const titleBar = new customTitlebar.Titlebar({
+		drag: true,
+	});
+
+	const selectAllUnrendered = function() {
+		multiSelectTable.selectMatching((flp) => !flp.lastRender);
+	}
+
+	const { Menu, MenuItem } = app;
+	const menu = new Menu();
+	menu.append(new MenuItem({
+		label: "Selection",
+		submenu: [
+			{
+				label: "Select all unrendered",
+				click: () => {
+					selectAllUnrendered();
+				},
+				accelerator: "CmdOrCtrl+A"
+			},
+			{
+				label: "Select all",
+				click: () => {
+					multiSelectTable.selectMatching(() => true);
+				},
+				accelerator: "CmdOrCtrl+Shift+A"
+			},
+			{
+				label: "Select latest changes",
+				click: () => {
+					multiSelectTable.selectMatching((flp) => !flp.upToDate, true);
+				},
+				accelerator: "CmdOrCtrl+E"
+			},
+			{
+				label: "Render selected",
+				click: () => {
+					$("#enqueue").click();
+				},
+				accelerator: "CmdOrCtrl+R"
+			},
+		]
+	}));
+	menu.append(new MenuItem({
+		label: "Help",
+		submenu: [
+			{
+				label: "About",
+				click: () => {
+					onClickAbout();
+				}
+			}
+		]
+	}));
+	document.addEventListener("keydown", (ev) => {
+		if (ev.ctrlKey && ev.key === "a") {
+			selectAllUnrendered();
+		}
+	})
+	titleBar.updateMenu(menu);
+	app.getCurrentWindow().setMenu(menu);
+}
+
+createTitleBar();
