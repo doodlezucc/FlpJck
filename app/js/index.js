@@ -8,6 +8,7 @@ const childProcess = require("child_process");
 const regedit = require("regedit");
 const chokidar = require("chokidar");
 const customTitlebar = require("custom-electron-titlebar");
+const aboutWindow = require("about-window");
 
 const titleBar = new customTitlebar.Titlebar({
 	drag: true,
@@ -732,7 +733,22 @@ function loadData() {
 loadData();
 
 function onClickAbout() {
-	console.log("todo about");
+	aboutWindow.default({
+		icon_path: p.join(__dirname, "./style/icon.png"),
+		//open_devtools: process.env.NODE_ENV !== "production",
+		win_options: {
+			parent: app.getCurrentWindow(),
+			frame: false
+		},
+		show_close_button: "Close",
+		product_name: "FlpJck",
+		description: "FL Studio export synchronizer",
+		copyright: "by FellowHead",
+		css_path: [
+			p.join(__dirname, "./style/style.css"),
+			p.join(__dirname, "./style/about.css")
+		]
+	});
 }
 
 function createTitleBar() {
@@ -783,6 +799,13 @@ function createTitleBar() {
 				click: () => {
 					onClickAbout();
 				}
+			},
+			{
+				label: "Report issue",
+				click: () => {
+					app.shell.openExternal("https://github.com/FellowHead/flpjck/issues/new")
+				},
+
 			}
 		]
 	}));

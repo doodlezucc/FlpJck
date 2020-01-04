@@ -1,7 +1,7 @@
 {
 	"name": "flpjck",
-	"version": "1.0.0",
-	"description": "FL Studio batch export tool",
+	"version": "0.9",
+	"description": "FL Studio render synchronizer",
 	"repository": {
 		"url": "https://github.com/FellowHead/flpjck.git"
 	},
@@ -9,12 +9,13 @@
 	"scripts": {
 		"start": "electron ."
 	},
-	"author": "",
+	"author": "FellowHead",
 	"license": "ISC",
 	"devDependencies": {
 		"electron": "^7.1.1"
 	},
 	"dependencies": {
+		"about-window": "^1.13.2",
 		"child_process": "^1.0.2",
 		"chokidar": "^3.3.1",
 		"custom-electron-titlebar": "^3.2.0",
