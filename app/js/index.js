@@ -718,7 +718,14 @@ function loadData() {
 		userData.directories.forEach((path) => new Directory(path));
 	} else {
 		$("#outDir").text(app.app.getPath("music"));
-		$("#execPath").text("C:\\Program Files (x86)\\Image-Line\\FL Studio 20\\FL64.exe");
+
+		$("#execPath").text("None selected!");
+		const dImageLine = "C:/Program Files (x86)/Image-Line/";
+		if (fs.existsSync(p.join(dImageLine, "FL Studio 20"))) {
+			$("#execPath").text(p.join(dImageLine, "FL Studio 20/FL64.exe"));
+		} else if (fs.existsSync(p.join(dImageLine, "FL Studio 12"))) {
+			$("#execPath").text(p.join(dImageLine, "FL Studio 12/FL64.exe"));
+		}
 	}
 }
 
@@ -783,7 +790,7 @@ function createTitleBar() {
 		if (ev.ctrlKey && ev.key === "a") {
 			selectAllUnrendered();
 		}
-	})
+	});
 	titleBar.updateMenu(menu);
 	app.getCurrentWindow().setMenu(menu);
 }
