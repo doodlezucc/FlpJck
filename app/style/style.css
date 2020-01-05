@@ -254,7 +254,7 @@ input:read-only {
 	color: #aaa;
 }
 
-.task-buttons {
+.buttons {
 	display: flex;
 	align-items: center;
 	position: absolute;
@@ -263,7 +263,7 @@ input:read-only {
 	bottom: 2px;
 	padding: 5px;
 }
-.task-buttons button {
+.buttons button {
 	background-color: var(--gray-dark);
 	padding: 3px;
 	width: 25px;
@@ -273,10 +273,10 @@ input:read-only {
 	text-align: center;
 	vertical-align: middle;
 }
-.task-buttons .remove {
+.buttons .remove {
 	color: var(--color-bad);
 }
-.task-buttons button:hover {
+.buttons button:hover {
 	background-color: var(--gray-dark);
 }
 .task:first-child button,
@@ -336,8 +336,18 @@ input:read-only {
 	border-right: none;
 }
 
+.file button {
+	display: none;
+}
+
+/* .file:hover button, */
+.file.selected button {
+	display: block;
+}
+
 .file {
 	cursor: default;
+	filter: brightness(100%);
 }
 .file.enqueued {
 	color: var(--color-dark);

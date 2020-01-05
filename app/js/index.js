@@ -347,6 +347,16 @@ class FLP {
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>").text(this.lastModified.toLocaleString()))
 			.append($("<td/>"));
+		// .append($("<div/>")
+		// 	.addClass("buttons")
+		// 	.append(
+		// 		$("<button/>", { title: "Blacklist" })
+		// 			.append(icon("times"))
+		// 			.click(() => {
+		// 				multiSelectTable.toggleBlacklist();
+		// 			})
+		// 	)
+		// );
 		if (this.isBlacklisted()) {
 			this.jq.addClass("blacklisted");
 		}
@@ -363,7 +373,7 @@ class FLP {
 		});
 		this.watcher.on("unlink", () => {
 			this.remove();
-		})
+		});
 		this.watcher.on("change", (path, stats) => {
 			const oldSize = this.stats.size;
 			this.stats = stats;
@@ -462,7 +472,7 @@ class RenderTask {
 			.addClass("task")
 			.append($("<h2/>").text(this.fileName))
 			.append($("<div/>")
-				.addClass("task-buttons")
+				.addClass("buttons")
 				.append(
 					$("<button/>", { title: "Move to top" })
 						.append(icon("arrow-up"))
@@ -788,12 +798,13 @@ function onClickAbout() {
 	});
 }
 
+const { Menu, MenuItem } = app;
+
 function createTitleBar() {
 	const selectAllUnrendered = function() {
 		multiSelectTable.selectMatching((flp) => !flp.upToDate && !flp.isBlacklisted());
 	}
 
-	const { Menu, MenuItem } = app;
 	const menu = new Menu();
 	menu.append(new MenuItem({
 		label: "Selection",
@@ -842,17 +853,20 @@ function createTitleBar() {
 		label: "Help",
 		submenu: [
 			{
-				label: "About",
-				click: () => {
-					onClickAbout();
-				}
-			},
-			{
 				label: "Report issue",
 				click: () => {
 					app.shell.openExternal("https://github.com/FellowHead/flpjck/issues/new")
 				},
 
+			},
+			{
+				type: "separator"
+			},
+			{
+				label: "About",
+				click: () => {
+					onClickAbout();
+				}
 			}
 		]
 	}));
