@@ -8,7 +8,6 @@ const childProcess = require("child_process");
 const regedit = require("regedit");
 const chokidar = require("chokidar");
 const customTitlebar = require("custom-electron-titlebar");
-const aboutWindow = require("about-window");
 
 const titleBar = new customTitlebar.Titlebar({
 	drag: true,
@@ -785,26 +784,32 @@ function loadData() {
 
 loadData();
 
-function onClickAbout() {
-	aboutWindow.default({
-		icon_path: p.join(__dirname, "./style/icon.png"),
-		//open_devtools: process.env.NODE_ENV !== "production",
-		win_options: {
-			parent: app.getCurrentWindow(),
-			frame: false
-		},
-		show_close_button: "Close",
-		product_name: "FlpJck",
-		description: "FL Studio render synchronizer",
-		copyright: "by FellowHead",
-		css_path: [
-			p.join(__dirname, "./style/style.css"),
-			p.join(__dirname, "./style/about.css")
-		]
-	});
-}
+const { Menu, MenuItem, BrowserWindow } = app;
 
-const { Menu, MenuItem } = app;
+/**
+ * 
+ * @param {Electron.KeyboardEvent} event 
+ */
+function onClickAbout() {
+	const bounds = app.getCurrentWindow().getBounds();
+	const width = 320;
+	const height = 200;
+	const win = new BrowserWindow({
+		webPreferences: {
+			nodeIntegration: true
+		},
+		frame: false,
+		maximizable: false,
+		minimizable: false,
+		parent: app.getCurrentWindow(),
+		width: width,
+		height: height,
+		resizable: true,
+		x: Math.round(bounds.x + (bounds.width - width) / 2),
+		y: Math.round(bounds.y + (bounds.height - height) / 2)
+	});
+	win.loadFile("app/about.html");
+}
 
 function createTitleBar() {
 	const selectAllUnrendered = function() {

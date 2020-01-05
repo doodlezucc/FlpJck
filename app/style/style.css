@@ -30,6 +30,10 @@ body {
 
 .titlebar {
 	background-color: var(--color-dark) !important;
+	box-shadow: 0 0 10px #0003 !important;
+}
+.titlebar.inactive {
+	filter: brightness(90%);
 }
 .container-after-titlebar {
 	position: fixed !important;
