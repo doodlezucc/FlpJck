@@ -394,7 +394,7 @@ class FLP {
 	}
 
 	get lastModified() {
-		return this.stats.mtime;
+		return (this.rendering && this.rendering.inputSize == this.stats.size) ? this.rendering.inputModified : this.stats.mtime;
 	}
 
 	remove() {
@@ -412,7 +412,7 @@ class FLP {
 	onRenderTaskDone(output) {
 		this.task = null;
 		this.jq.removeClass("enqueued");
-		renderings.set(this.file, new Rendering(output, new Date()));
+		renderings.set(this.file, new Rendering(output, new Date(), this.lastModified, this.stats.size));
 		this.updateRenderDisplay();
 		saveDataSync();
 	}
@@ -697,10 +697,14 @@ class Rendering {
 	/**
 	 * @param {string} output 
 	 * @param {Date} date 
+	 * @param {Date} inputModified 
+	 * @param {number} inputSize 
 	 */
-	constructor(output, date) {
+	constructor(output, date, inputModified, inputSize) {
 		this.output = output;
 		this.date = date;
+		this.inputModified = inputModified;
+		this.inputSize = inputSize;
 	}
 }
 
@@ -738,8 +742,10 @@ function saveDataSync() {
 	const jRenderings = {};
 	renderings.forEach((r, flp) => {
 		jRenderings[flp] = {
-			"output": r.output,
-			"date": r.date.getTime()
+			output: r.output,
+			date: r.date.getTime(),
+			inputModified: r.inputModified.getTime(),
+			inputSize: r.inputSize
 		};
 	});
 	fs.writeFileSync(savefile, JSON.stringify(
@@ -761,7 +767,7 @@ function loadData() {
 		blacklist = userData.blacklist;
 		for (const key in userData.renderings) {
 			const r = userData.renderings[key];
-			renderings.set(key, new Rendering(r.output, new Date(r.date)));
+			renderings.set(key, new Rendering(r.output, new Date(r.date), new Date(r.inputModified), r.inputSize));
 		}
 		userData.directories.forEach((path) => new Directory(path));
 	} else {
