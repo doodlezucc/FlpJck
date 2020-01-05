@@ -80,10 +80,11 @@ $(document).ready(function() {
 	});
 	$("#enqueue").click(function() {
 		flps.forEach((flp) => {
-			if (flp.jq.hasClass("selected") && !flp.jq.hasClass("enqueued")) {
+			if (flp.jq.hasClass("selected") && !flp.jq.hasClass("blacklisted") && !flp.jq.hasClass("enqueued")) {
 				flp.enqueue();
 			}
 		});
+		multiSelectTable.clearSelection();
 		$(this).prop("disabled", true);
 	});
 	$(".file-container").click(function(e) {
@@ -105,6 +106,29 @@ class MultiSelectTable {
 	 */
 	register(row) {
 		row.click((e) => this.onclick(row, e));
+	}
+
+	toggleBlacklist() {
+		const doBlacklist = this.jq.children(".selected").not(".blacklisted").length;
+		this.setBlacklisted(doBlacklist);
+	}
+
+	setBlacklisted(v) {
+		flps.forEach((flp) => {
+			if (flp.jq.hasClass("selected")) {
+				if (v) {
+					if (!flp.jq.hasClass("blacklisted")) {
+						flp.jq.addClass("blacklisted");
+						blacklist.push(flp.file);
+					}
+				} else {
+					flp.jq.removeClass("blacklisted");
+					blacklist = blacklist.filter((s) => s !== flp.file);
+				}
+			}
+		});
+		this.gatherSelected();
+		saveDataSync();
 	}
 
 	/**
@@ -158,7 +182,7 @@ class MultiSelectTable {
 	}
 
 	gatherSelected() {
-		const sel = this.jq.children(".selected").not(".enqueued");
+		const sel = this.jq.children(".selected").not(".blacklisted").not(".enqueued");
 		$("#enqueue").prop("disabled", sel.length == 0);
 	}
 
@@ -205,6 +229,10 @@ let flps = [];
  * 	@type {Map<string, Rendering>}
  */
 let renderings = new Map();
+/**
+ * @type {string[]}
+ */
+let blacklist = [];
 
 /**
  * get all files inside a directory (recursive)
@@ -319,6 +347,9 @@ class FLP {
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>").text(this.lastModified.toLocaleString()))
 			.append($("<td/>"));
+		if (this.isBlacklisted()) {
+			this.jq.addClass("blacklisted");
+		}
 		this.updateRenderDisplay();
 		if (index < 0) {
 			multiSelectTable.jq.append(this.jq);
@@ -378,6 +409,10 @@ class FLP {
 
 	get upToDate() {
 		return this.lastRender && this.lastModified < this.lastRender;
+	}
+
+	isBlacklisted() {
+		return blacklist.some((s) => s === this.file);
 	}
 
 	updateRenderDisplay() {
@@ -702,6 +737,7 @@ function saveDataSync() {
 			execPath: getExecPath(),
 			outDir: getOutputDirectory(),
 			directories: directories.map((d) => d.path),
+			blacklist: blacklist,
 			renderings: jRenderings
 		}, null, 2));
 	console.log("Saved!");
@@ -712,6 +748,7 @@ function loadData() {
 		const userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
 		$("#outDir").text(userData.outDir);
 		$("#execPath").text(userData.execPath);
+		blacklist = userData.blacklist;
 		for (const key in userData.renderings) {
 			const r = userData.renderings[key];
 			renderings.set(key, new Rendering(r.output, new Date(r.date)));
@@ -742,7 +779,7 @@ function onClickAbout() {
 		},
 		show_close_button: "Close",
 		product_name: "FlpJck",
-		description: "FL Studio export synchronizer",
+		description: "FL Studio render synchronizer",
 		copyright: "by FellowHead",
 		css_path: [
 			p.join(__dirname, "./style/style.css"),
@@ -753,7 +790,7 @@ function onClickAbout() {
 
 function createTitleBar() {
 	const selectAllUnrendered = function() {
-		multiSelectTable.selectMatching((flp) => !flp.lastRender);
+		multiSelectTable.selectMatching((flp) => !flp.upToDate && !flp.isBlacklisted());
 	}
 
 	const { Menu, MenuItem } = app;
@@ -771,7 +808,7 @@ function createTitleBar() {
 			{
 				label: "Select all",
 				click: () => {
-					multiSelectTable.selectMatching(() => true);
+					multiSelectTable.selectMatching((flp) => !flp.isBlacklisted());
 				},
 				accelerator: "CmdOrCtrl+Shift+A"
 			},
@@ -783,11 +820,21 @@ function createTitleBar() {
 				accelerator: "CmdOrCtrl+E"
 			},
 			{
+				type: "separator"
+			},
+			{
 				label: "Render selected",
 				click: () => {
 					$("#enqueue").click();
 				},
 				accelerator: "CmdOrCtrl+R"
+			},
+			{
+				label: "(Un-)Blacklist selected",
+				click: () => {
+					multiSelectTable.toggleBlacklist();
+				},
+				accelerator: "CmdOrCtrl+T"
 			},
 		]
 	}));

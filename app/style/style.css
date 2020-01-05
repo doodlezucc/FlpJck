@@ -339,17 +339,21 @@ input:read-only {
 .file {
 	cursor: default;
 }
-.file:hover {
-	background-color: var(--gray);
-}
-.file.selected {
-	background-color: var(--color-dark);
-}
 .file.enqueued {
 	color: var(--color-dark);
 }
 .file.up-to-date {
 	color: var(--color);
+}
+.file.blacklisted {
+	color: #fffa;
+	filter: saturate(50%) brightness(70%);
+}
+.file:hover {
+	background-color: var(--gray);
+}
+.file.selected {
+	background-color: var(--color-dark);
 }
 
 .file td {
