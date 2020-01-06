@@ -9,6 +9,8 @@ const regedit = require("regedit");
 const chokidar = require("chokidar");
 const customTitlebar = require("custom-electron-titlebar");
 
+const isWin = process.platform === "win32";
+
 const titleBar = new customTitlebar.Titlebar({
 	drag: true,
 });
@@ -798,7 +800,8 @@ function onClickAbout() {
 		webPreferences: {
 			nodeIntegration: true
 		},
-		frame: false,
+		frame: !isWin,
+		titleBarStyle: isWin ? "default" : "hidden",
 		maximizable: false,
 		minimizable: false,
 		parent: app.getCurrentWindow(),
@@ -817,6 +820,30 @@ function createTitleBar() {
 	}
 
 	const menu = new Menu();
+	const aboutItem = {
+		label: "About",
+		click: () => {
+			onClickAbout();
+		}
+	};
+
+	if (!isWin) {
+		menu.append(new MenuItem({
+			submenu: [
+				aboutItem,
+				{
+					type: "separator"
+				},
+				{
+					label: "Quit",
+					click: () => {
+						app.getCurrentWindow().close();
+					},
+					accelerator: "CmdOrCtrl+Q"
+				}
+			]
+		}));
+	}
 	menu.append(new MenuItem({
 		label: "Selection",
 		submenu: [
@@ -860,26 +887,24 @@ function createTitleBar() {
 			},
 		]
 	}));
+
+	/**
+	 * @type {Electron.MenuItemConstructorOptions[]
+	 */
+	const helpSubmenu = [
+		{
+			label: "Report issue",
+			click: () => {
+				app.shell.openExternal("https://github.com/FellowHead/flpjck/issues/new")
+			}
+		}
+	];
+	if (isWin) {
+		helpSubmenu.push({ type: "separator" }, aboutItem)
+	}
 	menu.append(new MenuItem({
 		label: "Help",
-		submenu: [
-			{
-				label: "Report issue",
-				click: () => {
-					app.shell.openExternal("https://github.com/FellowHead/flpjck/issues/new")
-				},
-
-			},
-			{
-				type: "separator"
-			},
-			{
-				label: "About",
-				click: () => {
-					onClickAbout();
-				}
-			}
-		]
+		submenu: helpSubmenu
 	}));
 	document.addEventListener("keydown", (ev) => {
 		if (ev.ctrlKey && ev.key === "a") {

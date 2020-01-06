@@ -9,14 +9,18 @@ const customTitlebar = require("custom-electron-titlebar");
 const pjson = require("../package.json");
 const { Menu } = remote;
 
-new customTitlebar.Titlebar({
+const isWin = process.platform === "win32";
+
+const titlebar = new customTitlebar.Titlebar({
 	drag: true,
 	maximizable: false,
 	minimizable: false,
-	titleHorizontalAlignment: "left",
-	menu: new Menu()
+	titleHorizontalAlignment: "center",
 });
-remote.getCurrentWindow().setMenu(new Menu());
+if (isWin) {
+	titlebar.updateMenu(new Menu());
+	remote.getCurrentWindow().setMenu(new Menu());
+}
 
 $(document).ready(() => {
 	$("button").click(function() {
