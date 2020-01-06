@@ -24,7 +24,9 @@ window.onerror = (event, source, lineno, colno, error) => {
 
 function regSetSplashScreen(v, callback) {
 	console.log("Setting show splash screen value to " + v);
-	app.getCurrentWindow().setAlwaysOnTop(v == 0);
+	if (!isWin) {
+		return callback();
+	}
 	const valuesToPut = {
 		[flMidiFormPath]: {
 			"SplashBox": {
@@ -38,7 +40,6 @@ function regSetSplashScreen(v, callback) {
 			console.log("ERROR PUTTING VALUE");
 			throw err;
 		} else {
-			//console.log("crazy son of a bitch");
 			callback();
 		}
 	});
@@ -47,16 +48,20 @@ function regSetSplashScreen(v, callback) {
 $(document).ready(function() {
 	//console.log("be ready");
 	$("#execPath").click(function() {
+		const dirname = p.dirname($(this).text());
+		const filter = isWin
+			? { name: "Windows Executable", extensions: ["exe"] }
+			: { name: "Application", extensions: ["app"] }
 		openDialog((path) => {
 			$(this).text(path);
 			saveDataSync();
 		}, {
 			properties: ["openFile"],
-			filters: [
-				{ name: "Windows Executable", extensions: ["exe"] },
-			],
+			filters: [filter],
 			title: "Locate the Fruity Loops executable to use",
-			defaultPath: p.dirname($(this).text())
+			defaultPath: dirname.length > 1
+				? dirname
+				: (isWin ? "C:/Program Files (x86)" : "/Applications")
 		});
 	});
 	$("#addSrcDir").click(function() {
@@ -551,13 +556,14 @@ class RenderTask {
 	}
 
 	closeFL(callback, force) {
-		//console.log("Checking if FL is running");
 		isFlRunning((v) => {
-			//console.log("FL running? " + v);
+			console.log("FL running? " + v);
 			if (!v) {
 				callback();
-			} else {
+			} else if (isWin) {
 				childProcess.exec("taskkill /fi \"IMAGENAME eq " + p.basename(getExecPath()) + (!force ? "\"" : "\" /f"), () => callback());
+			} else {
+				childProcess.exec("killall OsxFL", () => callback());
 			}
 		});
 	}
@@ -577,7 +583,7 @@ class RenderTask {
 		fs.copyFile(this.flp.file, this.safePath, callback);
 	}
 	copyProduct(callback) {
-		//console.log("Copying " + p.join(this.safeDir, this.fileName + ".mp3") + " to " + this.output);
+		//console.log("Copying " + this.safeProductPath + " to " + this.output);
 		fs.copyFile(this.safeProductPath, this.output, callback);
 	}
 
@@ -586,21 +592,21 @@ class RenderTask {
 		if (flShowSplash != undefined) {
 			callback();
 		} else {
-			regedit.list(flMidiFormPath, function(err, result) {
-				if (err) {
-					return console.log(err);
-				} else {
-					//console.log(result);
-					flShowSplash = result[flMidiFormPath].values["SplashBox"].value;
-					//console.log(flShowSplash);
-					//console.log(typeof flShowSplash);
-					if (flShowSplash === "0") {
-						callback();
+			app.getCurrentWindow().setAlwaysOnTop(true);
+			if (isWin) {
+				regedit.list(flMidiFormPath, function(err, result) {
+					if (err) {
+						return console.log(err);
 					} else {
-						regSetSplashScreen(0, () => callback());
+						flShowSplash = result[flMidiFormPath].values["SplashBox"].value;
+						if (flShowSplash === "0") {
+							callback();
+						} else {
+							regSetSplashScreen(0, () => callback());
+						}
 					}
-				}
-			});
+				});
+			}
 		}
 	}
 
@@ -622,25 +628,40 @@ class RenderTask {
 			const outputWatcher = chokidar.watch(this.safeProductPath, {
 				awaitWriteFinish: true
 			});
-			outputWatcher.on("unlink", () => {
+			const onFileWritten = () => {
 				this.setState(States.CLOSE_FL, 0.9);
-				this.closeFL(() => { }, true); // Force close FL after render
-			});
+				this.closeFL(() => {
+					if (!isWin) {
+						outputWatcher.close();
+						this.finaliseProduct();
+					}
+				}, true); // Force close FL after render
+			}
+			outputWatcher.on(isWin ? "unlink" : "change", onFileWritten);
 
 			const command = "cmd.exe /C \"" + getExecPath() + "\" /Rout /Emp3 " + this.safePath;
 			//console.log(command);
-			const cp = childProcess.spawn("start", ["/min", "", command], {
+			const cp = isWin ? childProcess.spawn("start", ["/min", "", command], {
+				shell: true,
+			}) : childProcess.spawn("open", ["\"" + getExecPath() + "\"",
+				"--args", "-Rout", "-Emp3", this.safePath], {
 				shell: true,
 			});
-			cp.on("close", (code, signal) => {
-				outputWatcher.close();
-				//console.log("Exited with code " + code + ", signal " + signal);
-				this.copyProduct(() => {
-					//console.log("copied");
+			if (isWin) {
+				cp.on("close", (code, signal) => {
+					outputWatcher.close();
+					//console.log("Exited with code " + code + ", signal " + signal);
+					this.finaliseProduct();
 				});
-				this.onRenderDone();
-			});
+			}
 		});
+	}
+
+	finaliseProduct() {
+		this.copyProduct(() => {
+			//console.log("copied");
+		});
+		this.onRenderDone();
 	}
 
 	pseudoRender() {
@@ -674,20 +695,26 @@ class RenderTask {
 			if (this.taskQueue.length) {
 				const next = this.taskQueue.shift();
 				next.render();
-			} else if (flShowSplash === "1") {
-				regSetSplashScreen(1, () => {
-					//console.log("Got your splash screen back");
-				});
-				flShowSplash = undefined;
+			} else {
+				app.getCurrentWindow().setAlwaysOnTop(false);
+				if (flShowSplash === "1") {
+					regSetSplashScreen(1, () => {
+						//console.log("Got your splash screen back");
+					});
+					flShowSplash = undefined;
+				}
 			}
 		}
 	}
 }
 
 function isFlRunning(callback) {
-	const imageName = p.basename(getExecPath());
-	childProcess.exec("tasklist /fi \"IMAGENAME eq " + imageName + "\"", (err, stdout, stderr) => {
-		if (stdout.includes(imageName)) {
+	const name = isWin ? p.basename(getExecPath()) : "/OsxFL";
+	const cmd = isWin
+		? "tasklist /fi \"IMAGENAME eq " + name + "\""
+		: "ps -ax | grep OsxFL";
+	childProcess.exec(cmd, (err, stdout, stderr) => {
+		if (stdout.includes(name)) {
 			return callback(true);
 		}
 		callback(false);
@@ -775,11 +802,26 @@ function loadData() {
 		$("#outDir").text(app.app.getPath("music"));
 
 		$("#execPath").text("None selected!");
-		const dImageLine = "C:/Program Files (x86)/Image-Line/";
-		if (fs.existsSync(p.join(dImageLine, "FL Studio 20"))) {
-			$("#execPath").text(p.join(dImageLine, "FL Studio 20/FL64.exe"));
-		} else if (fs.existsSync(p.join(dImageLine, "FL Studio 12"))) {
-			$("#execPath").text(p.join(dImageLine, "FL Studio 12/FL64.exe"));
+		if (isWin) {
+			const dImageLine = "C:/Program Files (x86)/Image-Line/";
+			if (fs.existsSync(p.join(dImageLine, "FL Studio 20"))) {
+				$("#execPath").text(p.join(dImageLine, "FL Studio 20/FL64.exe"));
+			} else if (fs.existsSync(p.join(dImageLine, "FL Studio 12"))) {
+				$("#execPath").text(p.join(dImageLine, "FL Studio 12/FL64.exe"));
+			}
+		} else {
+			const prefix = "/Applications";
+			if (fs.existsSync(p.join(prefix, "FL Studio 20.app"))) {
+				$("#execPath").text(p.join(prefix, "FL Studio 20.app"));
+			} else if (fs.existsSync(p.join(prefix, "FL Studio 12.app"))) {
+				$("#execPath").text(p.join(prefix, "FL Studio 12.app"));
+			}
+		}
+
+		let firstDir = p.join(app.app.getPath("documents"), "/Image-Line/FL Studio/Projects");
+		console.log(firstDir);
+		if (fs.existsSync(firstDir)) {
+			new Directory(firstDir);
 		}
 	}
 }
@@ -821,7 +863,7 @@ function createTitleBar() {
 
 	const menu = new Menu();
 	const aboutItem = {
-		label: "About",
+		label: "About FlpJck",
 		click: () => {
 			onClickAbout();
 		}
@@ -835,7 +877,7 @@ function createTitleBar() {
 					type: "separator"
 				},
 				{
-					label: "Quit",
+					label: "Quit FlpJck",
 					click: () => {
 						app.getCurrentWindow().close();
 					},
@@ -900,7 +942,7 @@ function createTitleBar() {
 		}
 	];
 	if (isWin) {
-		helpSubmenu.push({ type: "separator" }, aboutItem)
+		helpSubmenu.push({ type: "separator" }, aboutItem);
 	}
 	menu.append(new MenuItem({
 		label: "Help",
