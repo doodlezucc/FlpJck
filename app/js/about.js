@@ -15,7 +15,7 @@ const titlebar = new customTitlebar.Titlebar({
 	drag: true,
 	maximizable: false,
 	minimizable: false,
-	titleHorizontalAlignment: "center",
+	titleHorizontalAlignment: isWin ? "left" : "center",
 });
 if (isWin) {
 	titlebar.updateMenu(new Menu());

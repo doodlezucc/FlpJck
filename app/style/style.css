@@ -87,7 +87,7 @@ button:enabled:hover {
 .bottom-container {
 	display: flex;
 	position: relative;
-	height: 100%;
+	height: calc(100% - 83px);
 	top: var(--spacing);
 	padding-bottom: var(--spacing);
 }
@@ -152,7 +152,6 @@ input:read-only {
 	padding: 5px;
 	overflow-y: auto;
 	overflow-x: hidden;
-	min-height: 81px;
 	box-sizing: border-box;
 }
 
