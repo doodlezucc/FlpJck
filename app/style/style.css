@@ -14,7 +14,6 @@ body {
 
 	--spacing: 2px;
 	--task-window-width: 175px;
-	--settings-height: 81px;
 	--menu-height: 30px;
 	--head-height: 30px;
 
@@ -80,20 +79,17 @@ button:enabled:hover {
 }
 
 .interface {
-	display: block;
-	position: absolute;
-	top: var(--spacing);
-	width: calc(100% - 2 * var(--spacing));
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 }
 
 .bottom-container {
 	display: flex;
-	position: fixed;
-	top: calc(var(--settings-height) + var(--menu-height) + var(--spacing));
-	right: 0;
-	left: 0;
-	bottom: 0;
-	margin: var(--spacing);
+	position: relative;
+	height: 100%;
+	top: var(--spacing);
+	padding-bottom: var(--spacing);
 }
 
 ::-webkit-scrollbar {
@@ -156,7 +152,7 @@ input:read-only {
 	padding: 5px;
 	overflow-y: auto;
 	overflow-x: hidden;
-	height: var(--settings-height);
+	min-height: 81px;
 	box-sizing: border-box;
 }
 
@@ -207,7 +203,6 @@ input:read-only {
 	TASKS
 */
 .task-window {
-	position: absolute;
 	display: flex;
 	flex-direction: column;
 	width: var(--task-window-width);
@@ -216,6 +211,7 @@ input:read-only {
 	bottom: 0;
 	right: 0;
 	top: 0;
+	margin-left: var(--spacing);
 }
 
 .tools {
