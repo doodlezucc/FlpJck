@@ -197,6 +197,9 @@ input:read-only {
 .directory.loading {
 	opacity: 60%;
 }
+.directory.deep {
+	font-weight: bolder;
+}
 
 /*
 	TASKS

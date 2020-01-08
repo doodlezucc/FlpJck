@@ -17,7 +17,12 @@
 			<div class="setting">
 				<span class="label">Directories:</span>
 				<div class="directories">
-					<button id="addSrcDir">Add</button>
+					<div>
+						<button onclick="addSrcDir(false)" title="Add FLPs from a directory">Add</button>
+						<span>/</span>
+						<button onclick="addSrcDir(true)"
+							title="Add FLPs from a directory, also searching sub-directories">Add root</button>
+					</div>
 				</div>
 			</div>
 			<div class="setting">

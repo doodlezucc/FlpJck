@@ -64,16 +64,6 @@ $(document).ready(function() {
 				: (isWin ? "C:/Program Files (x86)" : "/Applications")
 		});
 	});
-	$("#addSrcDir").click(function() {
-		openDialog((path) => {
-			new Directory(path);
-			saveDataSync();
-		}, {
-			properties: ["openDirectory"],
-			title: "Add a directory containing Fruity Loops projects",
-			defaultPath: app.app.getPath("documents")
-		});
-	});
 	$("#outDir").click(function() {
 		openDialog((path) => {
 			$(this).text(path);
@@ -100,6 +90,17 @@ $(document).ready(function() {
 		}
 	});
 });
+
+function addSrcDir(deep) {
+	openDialog((path) => {
+		new Directory(path, deep);
+		saveDataSync();
+	}, {
+		properties: ["openDirectory"],
+		title: "Select a " + (deep ? "root " : "") + "directory containing Fruity Loops projects",
+		defaultPath: app.app.getPath("documents")
+	});
+}
 
 class MultiSelectTable {
 	constructor() {
@@ -243,10 +244,11 @@ let blacklist = [];
 /**
  * get all files inside a directory (recursive)
  * @param {string} dir 
+ * @param {boolean} recursive
  * @param {(file: string) => void} fileFound
  * @param {(err: NodeJS.ErrnoException | null, files: string[]) => void} done
  */
-function walk(dir, fileFound, done) {
+function walk(dir, recursive, fileFound, done) {
 	let results = [];
 	fs.readdir(dir, function(err, list) {
 		if (err) return done(err);
@@ -255,14 +257,16 @@ function walk(dir, fileFound, done) {
 		list.forEach(function(file) {
 			file = p.resolve(dir, file);
 			fs.stat(file, function(err, stat) {
-				if (stat && stat.isDirectory()) {
-					walk(file, fileFound, function(err, res) {
+				if (stat && stat.isDirectory() && recursive) {
+					walk(file, true, fileFound, function(err, res) {
 						results = results.concat(res);
 						if (!--pending) done(null, results);
 					});
 				} else {
-					results.push(file);
-					fileFound(file);
+					if (!stat.isDirectory()) {
+						results.push(file);
+						fileFound(file);
+					}
 					if (!--pending) done(null, results);
 				}
 			});
@@ -271,23 +275,32 @@ function walk(dir, fileFound, done) {
 };
 
 class Directory {
-	constructor(path) {
+	/**
+	 * @param {string} path 
+	 * @param {boolean} deep 
+	 */
+	constructor(path, deep) {
 		directories.push(this);
 		const ref = this;
 		this.path = path;
+		this.deep = deep;
 		this.jq = $("<span/>", { title: "Unlink \"" + path + "\"" })
 			.addClass("directory loading")
 			.text(this.name)
 			.click(function() {
 				ref.remove();
 			});
+		if (deep) {
+			this.jq.addClass("deep");
+		}
 		$(".directories").children().last().before(this.jq);
 		this.files = [];
 		this.refreshFiles();
 		this.watcher = chokidar.watch(this.path, {
-			ignoreInitial: true
+			ignoreInitial: true,
+			depth: deep ? undefined : 0
 		});
-		this.watcher.on("add", (path, stats) => {
+		this.watcher.on("add", (path) => {
 			if (!flps.some((flp) => flp.file === path)) {
 				//console.log("flp add " + path);
 				new FLP(path, this);
@@ -307,8 +320,8 @@ class Directory {
 	}
 
 	refreshFiles() {
-		walk(this.path, (file) => {
-			if (p.extname(file) === ".flp" && !flps.some((flp) => flp.file === file)) {
+		walk(this.path, this.deep, (file) => {
+			if (p.extname(file) === ".png" && !flps.some((flp) => flp.file === file)) {
 				new FLP(file, this);
 			}
 		}, (err, results) => {
@@ -780,7 +793,12 @@ function saveDataSync() {
 		{
 			execPath: getExecPath(),
 			outDir: getOutputDirectory(),
-			directories: directories.map((d) => d.path),
+			directories: directories.map((d) => {
+				return {
+					path: d.path,
+					deep: d.deep
+				};
+			}),
 			blacklist: blacklist,
 			renderings: jRenderings
 		}, null, 2));
@@ -797,7 +815,7 @@ function loadData() {
 			const r = userData.renderings[key];
 			renderings.set(key, new Rendering(r.output, new Date(r.date), new Date(r.inputModified), r.inputSize));
 		}
-		userData.directories.forEach((path) => new Directory(path));
+		userData.directories.forEach((dir) => new Directory(dir.path, dir.deep));
 	} else {
 		$("#outDir").text(app.app.getPath("music"));
 
@@ -821,7 +839,7 @@ function loadData() {
 		let firstDir = p.join(app.app.getPath("documents"), "/Image-Line/FL Studio/Projects");
 		console.log(firstDir);
 		if (fs.existsSync(firstDir)) {
-			new Directory(firstDir);
+			new Directory(firstDir, false);
 		}
 	}
 }
