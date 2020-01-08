@@ -98,7 +98,7 @@ function addSrcDir(deep) {
 		saveDataSync();
 	}, {
 		properties: ["openDirectory"],
-		title: "Select a " + (deep ? "root " : "") + "directory containing Fruity Loops projects",
+		title: "Select a " + (deep ? "root " : "") + "directory to take Fruity Loops projects from",
 		defaultPath: app.app.getPath("documents")
 	});
 }
@@ -285,7 +285,7 @@ class Directory {
 		const ref = this;
 		this.path = path;
 		this.deep = deep;
-		this.jq = $("<span/>", { title: "Unlink \"" + path + "\"" })
+		this.jq = $("<span/>", { title: "Unlink \"" + path + "\"" + (deep ? " (and sub-directories)" : "") })
 			.addClass("directory loading")
 			.text(this.name)
 			.click(function() {

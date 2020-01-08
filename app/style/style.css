@@ -189,16 +189,18 @@ input:read-only {
 }
 .directory:not(:last-child)::after {
 	content: ",";
-	cursor: default;
+}
+.directory.deep::before {
+	content: "[";
+}
+.directory.deep::after {
+	content: "],";
 }
 .directory:not(.loading):hover {
 	color: var(--color-bad);
 }
 .directory.loading {
 	opacity: 60%;
-}
-.directory.deep {
-	font-weight: bolder;
 }
 
 /*
