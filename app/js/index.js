@@ -10,6 +10,7 @@ const chokidar = require("chokidar");
 const customTitlebar = require("custom-electron-titlebar");
 
 const isWin = process.platform === "win32";
+const extension = ".flp";
 
 const titleBar = new customTitlebar.Titlebar({
 	drag: true,
@@ -301,7 +302,7 @@ class Directory {
 			depth: deep ? undefined : 0
 		});
 		this.watcher.on("add", (path) => {
-			if (!flps.some((flp) => flp.file === path)) {
+			if (p.extname(path) === extension && !flps.some((flp) => flp.file === path)) {
 				//console.log("flp add " + path);
 				new FLP(path, this);
 			}
@@ -321,7 +322,7 @@ class Directory {
 
 	refreshFiles() {
 		walk(this.path, this.deep, (file) => {
-			if (p.extname(file) === ".png" && !flps.some((flp) => flp.file === file)) {
+			if (p.extname(file) === extension && !flps.some((flp) => flp.file === file)) {
 				new FLP(file, this);
 			}
 		}, (err, results) => {
