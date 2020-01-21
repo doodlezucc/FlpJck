@@ -26,5 +26,6 @@ $(document).ready(() => {
 	$("button").click(function() {
 		remote.shell.openExternal($(this).attr("href"));
 	});
-	$("#version").text(pjson.version);
 });
+
+document.getElementById("version").innerText = pjson.version;

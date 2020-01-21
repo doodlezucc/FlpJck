@@ -24,7 +24,7 @@ window.onerror = (event, source, lineno, colno, error) => {
 	dialog.showErrorBox("Some kind of error ocurred while running FlpJck", error.stack);
 };
 
-if (!isDev) {
+if (isWin && !isDev) {
 	const vbsFolderFound = regedit.setExternalVBSLocation(p.join(
 		p.dirname(app.app.getPath("exe")),
 		"./resources/app.asar.unpacked/app/vbs"
@@ -882,9 +882,13 @@ function onClickAbout() {
 		height: height,
 		resizable: true,
 		x: Math.round(bounds.x + (bounds.width - width) / 2),
-		y: Math.round(bounds.y + (bounds.height - height) / 2)
+		y: Math.round(bounds.y + (bounds.height - height) / 2),
+		show: false
 	});
 	win.loadFile("app/about.html");
+	win.webContents.on("did-finish-load", () => {
+		win.show();
+	});
 }
 
 function createTitleBar() {
