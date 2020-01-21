@@ -8,6 +8,7 @@ const childProcess = require("child_process");
 const regedit = require("regedit");
 const chokidar = require("chokidar");
 const customTitlebar = require("custom-electron-titlebar");
+const isDev = require("electron-is-dev");
 
 const isWin = process.platform === "win32";
 const extension = ".flp";
@@ -22,6 +23,15 @@ const flMidiFormPath = "HKCU\\SOFTWARE\\Image-Line\\FL Studio 20\\General\\MIDIF
 window.onerror = (event, source, lineno, colno, error) => {
 	dialog.showErrorBox("Some kind of error ocurred while running FlpJck", error.stack);
 };
+
+if (!isDev) {
+	dialog.showMessageBox(app.getCurrentWindow(), {
+		message: regedit.setExternalVBSLocation(p.join(
+			p.dirname(app.app.getPath("exe")),
+			"./resources/app.asar.unpacked/app/vbs"
+		))
+	});
+}
 
 function regSetSplashScreen(v, callback) {
 	console.log("Setting show splash screen value to " + v);
@@ -610,7 +620,8 @@ class RenderTask {
 			if (isWin) {
 				regedit.list(flMidiFormPath, function(err, result) {
 					if (err) {
-						return console.log(err);
+						console.log(err);
+						throw err;
 					} else {
 						flShowSplash = result[flMidiFormPath].values["SplashBox"].value;
 						if (flShowSplash === "0") {
