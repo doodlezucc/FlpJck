@@ -10,7 +10,7 @@
 		"start": "electron ."
 	},
 	"author": "FellowHead",
-	"license": "ISC",
+	"license": "Unlicense",
 	"build": {
 		"appId": "me.fellowhead.flpjck",
 		"productName": "FlpJck",
