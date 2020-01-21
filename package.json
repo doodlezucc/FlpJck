@@ -15,7 +15,7 @@
 		"appId": "me.fellowhead.flpjck",
 		"productName": "FlpJck",
 		"win": {
-			"icon": "app/style/icon.ico"
+			"icon": "app/style/icon/icon.ico"
 		},
 		"asar": true,
 		"asarUnpack": [

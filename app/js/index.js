@@ -25,12 +25,13 @@ window.onerror = (event, source, lineno, colno, error) => {
 };
 
 if (!isDev) {
-	dialog.showMessageBox(app.getCurrentWindow(), {
-		message: regedit.setExternalVBSLocation(p.join(
-			p.dirname(app.app.getPath("exe")),
-			"./resources/app.asar.unpacked/app/vbs"
-		))
-	});
+	const vbsFolderFound = regedit.setExternalVBSLocation(p.join(
+		p.dirname(app.app.getPath("exe")),
+		"./resources/app.asar.unpacked/app/vbs"
+	));
+	// dialog.showMessageBox(app.getCurrentWindow(), {
+	// 	message: vbsFolderFound
+	// });
 }
 
 function regSetSplashScreen(v, callback) {

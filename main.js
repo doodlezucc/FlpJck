@@ -16,7 +16,7 @@ function createWindow() {
 		},
 		frame: !isWin,
 		titleBarStyle: isWin ? "default" : "hidden",
-		icon: "app/style/icon.ico"
+		icon: "app/style/icon/icon.ico"
 	});
 
 	win.loadFile("app/index.html");
