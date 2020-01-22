@@ -359,20 +359,7 @@ class FLP {
 		this.stats = fs.statSync(file);
 		this.file = file;
 		this.directory = directory;
-		let index = -1;
-		for (let i = 0; i < flps.length; i++) {
-			if (this.lastModified > flps[i].lastModified) {
-				index = i;
-				break;
-			}
-		}
-		if (index < 0) {
-			flps.push(this);
-		} else if (index == 0) {
-			flps.unshift(this);
-		} else {
-			flps.splice(index, 0, this);
-		}
+
 		this.jq = $("<tr/>").addClass("file")
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
@@ -392,11 +379,7 @@ class FLP {
 			this.jq.addClass("blacklisted");
 		}
 		this.updateRenderDisplay();
-		if (index < 0) {
-			multiSelectTable.jq.append(this.jq);
-		} else {
-			multiSelectTable.jq.children().eq(index).before(this.jq);
-		}
+		this.sortInit();
 		multiSelectTable.register(this.jq);
 
 		this.watcher = chokidar.watch(file, {
@@ -409,10 +392,36 @@ class FLP {
 			const oldSize = this.stats.size;
 			this.stats = stats;
 			if (stats.size != oldSize) {
+				flps = flps.filter((flp) => flp !== this);
+				this.sortInit();
+
 				this.jq.children().eq(2).text(this.lastModified.toLocaleString());
 				this.updateRenderDisplay();
 			}
 		});
+	}
+
+	sortInit() {
+		let index = -1;
+		for (let i = 0; i < flps.length; i++) {
+			if (this.lastModified > flps[i].lastModified) {
+				index = i;
+				break;
+			}
+		}
+		if (index < 0) {
+			flps.push(this);
+
+			multiSelectTable.jq.append(this.jq);
+		} else {
+			if (index == 0) {
+				flps.unshift(this);
+			} else {
+				flps.splice(index, 0, this);
+			}
+
+			multiSelectTable.jq.children().eq(index).before(this.jq);
+		}
 	}
 
 	get directoryName() {
