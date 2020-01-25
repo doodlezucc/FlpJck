@@ -219,7 +219,7 @@ input:read-only {
 }
 
 .tools {
-	height: var(--head-height);
+	min-height: var(--head-height);
 	background-color: var(--gray-dark);
 	border-bottom: 1px solid white;
 	box-sizing: border-box;
