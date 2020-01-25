@@ -6,6 +6,7 @@ window.onerror = (event, source, lineno, colno, error) => {
 
 const remote = window.require("electron").remote;
 const customTitlebar = require("custom-electron-titlebar");
+const $ = require("jquery");
 const pjson = require("../package.json");
 const { Menu } = remote;
 

@@ -9,6 +9,7 @@ const regedit = require("regedit");
 const chokidar = require("chokidar");
 const customTitlebar = require("custom-electron-titlebar");
 const isDev = require("electron-is-dev");
+const $ = require("jquery");
 
 const isWin = process.platform === "win32";
 const extension = ".flp";
