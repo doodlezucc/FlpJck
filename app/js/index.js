@@ -969,7 +969,7 @@ function createTitleBar() {
 				click: () => {
 					multiSelectTable.toggleBlacklist();
 				},
-				accelerator: "CmdOrCtrl+T"
+				accelerator: "CmdOrCtrl+B"
 			},
 		]
 	}));
@@ -981,7 +981,7 @@ function createTitleBar() {
 		{
 			label: "Report issue",
 			click: () => {
-				app.shell.openExternal("https://github.com/FellowHead/flpjck/issues/new")
+				app.shell.openExternal("https://github.com/FellowHead/FlpJck/issues/new")
 			}
 		}
 	];

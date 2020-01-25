@@ -3,7 +3,7 @@
 	"version": "0.9.5",
 	"description": "FL Studio render synchronizer",
 	"repository": {
-		"url": "https://github.com/FellowHead/flpjck.git"
+		"url": "https://github.com/FellowHead/FlpJck.git"
 	},
 	"main": "main.js",
 	"scripts": {
