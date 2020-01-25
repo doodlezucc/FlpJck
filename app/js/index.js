@@ -323,6 +323,7 @@ class Directory {
 	remove() {
 		directories = directories.filter((d) => d !== this);
 		this.jq.remove();
+		this.watcher.close();
 		flps.forEach((flp) => {
 			if (flp.directory === this) {
 				flp.remove();
