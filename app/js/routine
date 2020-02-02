@@ -1,16 +1,22 @@
 - turn on "Typing keyboard to piano keyboard":
 	- WINDOWS:
 		- regedit "HKEY_CURRENT_USER\Software\Image-Line\FL Studio 20\General\ToolbarForm" => name: KbToMIDIBtn, value: "0" OR "1" (REG_SZ)
+	- MACOS: ???
 
 (- open FL Studio)
 
 - open project:
 	- run FL with the project file as an argument
 
-- when loaded, "prepare" project:
+- wait until loaded: repeat performing [Ctrl + S] until
+
+- "prepare" project:
 	- switch to pattern view
-		- perform [Ctrl + F], [Escape]	=> focus FL's file browser
-		- perform [F6] 					=> view channel rack
+		- perform [Enter] twice		=> focus playlist
+		- perform [F6] 				=> view channel rack
+	
+	- unzip all channels
+		- perform [Alt + U]
 	
 	- repeat 100 times:
 		- perform [Q] (and other midi keys?)	=> make the selected channel play a note

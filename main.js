@@ -23,7 +23,7 @@ function createWindow() {
 	win.webContents.on("did-finish-load", () => {
 		win.show();
 	})
-	win.loadFile("app/index.html");
+	win.loadFile("app/automate.html");
 }
 
 el.app.on("ready", createWindow);
