@@ -10,7 +10,7 @@
 		"start": "electron ."
 	},
 	"author": "FellowHead",
-	"license": "Unlicense",
+	"license": "MIT",
 	"build": {
 		"appId": "me.fellowhead.flpjck",
 		"productName": "FlpJck",
@@ -35,6 +35,7 @@
 		"fs": "0.0.1-security",
 		"jquery": "^3.5.0",
 		"path": "^0.12.7",
-		"regedit": "^3.0.3"
+		"regedit": "^3.0.3",
+		"minimist": "^1.2.3"
 	}
 }
