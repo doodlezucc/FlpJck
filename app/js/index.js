@@ -79,7 +79,7 @@ $(document).ready(function() {
 	});
 	$("#outDir").click(function() {
 		openDialog((path) => {
-			$(this).text(path);
+			setOutputDirectory(path);
 			saveDataSync();
 		}, {
 			properties: ["openDirectory"],
@@ -358,14 +358,27 @@ class FLP {
 	 * @param {Directory} directory
 	 */
 	constructor(file, directory) {
-		this.stats = fs.statSync(file);
-		this.file = file;
 		this.directory = directory;
+		this.file = file;
+		var jobs = 1;
+		fs.stat(file, (err, stats) => {
+			this.stats = stats;
+			this.sortInit();
+			if (--jobs == 0) this.updateRenderDisplay();
+		});
+		const outFile = this.outFile;
+		if (outFile) {
+			jobs++;
+			fs.stat(outFile, (err, stats) => {
+				this.outStats = stats;
+				if (--jobs == 0) this.updateRenderDisplay();
+			});
+		}
 
 		this.jq = $("<tr/>").addClass("file")
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
-			.append($("<td/>").text(this.lastModified.toLocaleString()))
+			.append($("<td/>"))
 			.append($("<td/>"));
 		// .append($("<div/>")
 		// 	.addClass("buttons")
@@ -380,8 +393,6 @@ class FLP {
 		if (this.isBlacklisted()) {
 			this.jq.addClass("blacklisted");
 		}
-		this.updateRenderDisplay();
-		this.sortInit();
 		multiSelectTable.register(this.jq);
 
 		this.watcher = chokidar.watch(file, {
@@ -397,10 +408,22 @@ class FLP {
 				flps = flps.filter((flp) => flp !== this);
 				this.sortInit();
 
-				this.jq.children().eq(2).text(this.lastModified.toLocaleString());
 				this.updateRenderDisplay();
 			}
 		});
+	}
+
+	onOutDirChange() {
+		const outFile = this.outFile;
+		if (outFile) {
+			fs.stat(outFile, (err, stats) => {
+				this.outStats = stats;
+				this.updateRenderDisplay();
+			});
+		} else {
+			this.outStats = null;
+			this.updateRenderDisplay();
+		}
 	}
 
 	sortInit() {
@@ -424,6 +447,14 @@ class FLP {
 
 			multiSelectTable.jq.children().eq(index).before(this.jq);
 		}
+	}
+
+	get outFile() {
+		const fileMaybe = filesInOutDir.find((file) => {
+			const base = p.basename(file);
+			return base.substr(0, base.length - 4) === this.fileName;
+		});
+		return fileMaybe ? p.join(getOutputDirectory(), fileMaybe) : null;
 	}
 
 	get directoryName() {
@@ -468,6 +499,7 @@ class FLP {
 	}
 
 	updateRenderDisplay() {
+		this.jq.children().eq(2).text(this.lastModified.toLocaleString());
 		this.jq.children().eq(3).text(this.lastRender ? this.lastRender.toLocaleString() : "Never");
 		if (this.upToDate) {
 			this.jq.addClass("up-to-date");
@@ -477,7 +509,16 @@ class FLP {
 	}
 
 	get lastRender() {
-		return this.rendering ? this.rendering.date : null;
+		if (this.rendering && this.outStats) {
+			const d1 = this.rendering.date;
+			const d2 = this.outStats.mtime;
+			return (d1.getTime() > d2.getTime()) ? d1 : d2;
+		} else if (this.rendering) {
+			return this.rendering.date;
+		} else if (this.outStats) {
+			return this.outStats.mtime;
+		}
+		return null;
 	}
 
 	get rendering() {
@@ -829,19 +870,36 @@ function saveDataSync() {
 	console.log("Saved!");
 }
 
+/**
+ * @type {string[]}
+ */
+var filesInOutDir;
+
+function setOutputDirectory(dir) {
+	$("#outDir").text(dir);
+	const filePaths = fs.readdirSync(dir);
+	filesInOutDir = [];
+	filePaths.forEach((path) => {
+		filesInOutDir.push(p.basename(path));
+	});
+	flps.forEach((flp) => flp.onOutDirChange());
+}
+
 function loadData() {
 	if (fs.existsSync(savefile)) {
 		const userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
-		$("#outDir").text(userData.outDir);
 		$("#execPath").text(userData.execPath);
+		setOutputDirectory(userData.outDir);
 		blacklist = userData.blacklist;
+
 		for (const key in userData.renderings) {
 			const r = userData.renderings[key];
 			renderings.set(key, new Rendering(r.output, new Date(r.date), new Date(r.inputModified), r.inputSize));
 		}
 		userData.directories.forEach((dir) => new Directory(dir.path, dir.deep));
-	} else {
-		$("#outDir").text(app.app.getPath("music"));
+	}
+	else {
+		setOutputDirectory(app.app.getPath("music"));
 
 		$("#execPath").text("None selected!");
 		if (isWin) {
