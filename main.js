@@ -12,13 +12,16 @@ function createWindow() {
 		width: 650,
 		height: 400,
 		webPreferences: {
-			nodeIntegration: true
+			nodeIntegration: true,
+			nodeIntegrationInWorker: true
 		},
 		frame: !isWin,
 		titleBarStyle: isWin ? "default" : "hidden",
 		icon: "app/style/icon/icon.ico",
 		show: false
 	});
+
+	win.webContents.setBackgroundThrottling(false);
 
 	win.webContents.on("did-finish-load", () => {
 		win.show();

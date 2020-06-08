@@ -1,6 +1,7 @@
 "use strict";
 
-const app = require("electron").remote;
+const el = require("electron");
+const app = el.remote;
 const dialog = app.dialog;
 const fs = require("fs");
 const p = require("path");
@@ -665,7 +666,7 @@ class RenderTask {
 	}
 
 	prepareFL(callback) {
-		this.setState(States.PREPARE_FL, 0.15);
+		this.setState(States.PREPARE_FL, 0.075);
 		if (flShowSplash != undefined) {
 			callback();
 		} else {
@@ -689,7 +690,7 @@ class RenderTask {
 	}
 
 	prepareRender(callback) {
-		this.setState(States.CLOSE_FL, 0.1);
+		this.setState(States.CLOSE_FL, 0.05);
 		this.closeFL(() => {
 			this.prepareFL(() => {
 				this.copySource(() => {
@@ -699,9 +700,63 @@ class RenderTask {
 		});
 	}
 
+	createInterval() {
+		let flID;
+		let lastSources;
+
+		this.interval = setInterval(() => {
+			el.desktopCapturer.getSources({
+				types: ["window"],
+				thumbnailSize: {
+					width: 0,
+					height: 0
+				},
+				fetchWindowIcons: false
+			}).then((sources) => {
+				sources.forEach((src) => {
+					console.log(src.id + " | " + src.name);
+				});
+
+				if (!flID) {
+					// Phase 1: Wait for FL Studio to pop up as a window
+					if (lastSources) {
+						if (sources.length > lastSources.length) {
+							// a new window has opened
+							const srcNew = sources.find((src) =>
+								!lastSources.some((lastSrc) => src.id === lastSrc.id));
+							console.log("new window: " + srcNew.name);
+
+							if (srcNew.name.startsWith("FL Studio ")) {
+								flID = srcNew.id;
+								console.log("found you, " + flID);
+							}
+						}
+					}
+					lastSources = sources;
+				}
+				else {
+					// Phase 2: Observe FL Studio's window title
+					const flSrc = sources.find((src) => src.id === flID);
+					if (flSrc) {
+						const s = flSrc.name;
+						if (s.includes("/") && s.lastIndexOf("/") > s.length - 5) {
+							// window title looks something like ......./....
+							// so, probably rendering
+							const progress = s.substr(s.lastIndexOf(" ") + 1);
+							const current = parseInt(progress.substr(0, progress.indexOf("/")));
+							const total = parseInt(progress.substr(progress.indexOf("/") + 1));
+
+							this.setProgress(0.1 + 0.8 * current / total);
+						}
+					}
+				}
+			});
+		}, 200);
+	}
+
 	flRender() {
 		this.prepareRender(() => {
-			this.setState(States.RENDER, 0.2);
+			this.setState(States.RENDER, 0.1);
 
 			const outputWatcher = chokidar.watch(this.safeProductPath, {
 				awaitWriteFinish: true
@@ -716,6 +771,8 @@ class RenderTask {
 				}, true); // Force close FL after render
 			}
 			outputWatcher.on(isWin ? "unlink" : "change", onFileWritten);
+
+			this.createInterval();
 
 			const command = "cmd.exe /C \"" + getExecPath() + "\" /Rout /Emp3 " + this.safePath;
 			//console.log(command);
@@ -736,6 +793,8 @@ class RenderTask {
 	}
 
 	finaliseProduct() {
+		clearInterval(this.interval);
+
 		this.copyProduct(() => {
 			//console.log("copied");
 		});
@@ -1041,7 +1100,7 @@ function createTitleBar() {
 		{
 			label: "Report issue",
 			click: () => {
-				app.shell.openExternal("https://github.com/FellowHead/FlpJck/issues/new")
+				app.shell.openExternal("https://github.com/FellowHead/FlpJck/issues")
 			}
 		}
 	];
