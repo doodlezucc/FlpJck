@@ -15,6 +15,13 @@ const $ = require("jquery");
 const isWin = process.platform === "win32";
 const extension = ".flp";
 
+// How long FL Studio may load a project (in seconds).
+//
+// This can be useful when there are missing samples or demo version plugins inside a project.
+// In that case, FL Studio displays a dialog to the user and refuses to render automatically.
+// After the timer has run out, FlpJck sends a terminate signal to Fruity Loops.
+const loadingTimeout = 120;
+
 const titleBar = new customTitlebar.Titlebar({
 	drag: true,
 });
@@ -483,12 +490,14 @@ class FLP {
 		RenderTask.checkQueue();
 	}
 
-	onRenderTaskDone(output) {
+	onRenderTaskDone(output, success) {
 		this.task = null;
 		this.jq.removeClass("enqueued");
-		renderings.set(this.file, new Rendering(output, new Date(), this.lastModified, this.stats.size));
-		this.updateRenderDisplay();
-		saveDataSync();
+		if (success) {
+			renderings.set(this.file, new Rendering(output, new Date(), this.lastModified, this.stats.size));
+			this.updateRenderDisplay();
+			saveDataSync();
+		}
 	}
 
 	get upToDate() {
@@ -704,6 +713,8 @@ class RenderTask {
 	createInterval() {
 		let flID;
 		let lastSources;
+		let rendering = false;
+		let start;
 
 		this.interval = setInterval(() => {
 			el.desktopCapturer.getSources({
@@ -714,10 +725,6 @@ class RenderTask {
 				},
 				fetchWindowIcons: false
 			}).then((sources) => {
-				sources.forEach((src) => {
-					console.log(src.id + " | " + src.name);
-				});
-
 				if (!flID) {
 					// Phase 1: Wait for FL Studio to pop up as a window
 					if (lastSources) {
@@ -725,11 +732,12 @@ class RenderTask {
 							// a new window has opened
 							const srcNew = sources.find((src) =>
 								!lastSources.some((lastSrc) => src.id === lastSrc.id));
-							console.log("new window: " + srcNew.name);
+							//console.log("new window: " + srcNew.name);
 
 							if (srcNew.name.startsWith("FL Studio ")) {
 								flID = srcNew.id;
-								console.log("found you, " + flID);
+								start = new Date();
+								//console.log("found you, " + flID);
 							}
 						}
 					}
@@ -741,37 +749,59 @@ class RenderTask {
 					if (flSrc) {
 						const s = flSrc.name;
 						if (s.includes("/") && s.lastIndexOf("/") > s.length - 5) {
-							// window title looks something like ......./....
+							// Window title looks something like ......./....
 							// so, probably rendering
+							rendering = true;
 							const progress = s.substr(s.lastIndexOf(" ") + 1);
 							const current = parseInt(progress.substr(0, progress.indexOf("/")));
 							const total = parseInt(progress.substr(progress.indexOf("/") + 1));
 
 							this.setProgress(0.1 + 0.8 * current / total);
 						}
+						else if (!rendering) {
+							// FL is loading the project
+							const elapsed = (new Date().getTime() - start) / 1000;
+							if (this.success && elapsed >= 10) {
+								// FL might be stuck, are samples or plugins missing?
+								if (elapsed < loadingTimeout) {
+									console.log("FL might be stuck, terminating in "
+										+ (loadingTimeout - elapsed).toFixed(1) + " seconds.");
+								} else {
+									console.log("I diagnose you with dead.");
+									this.success = false;
+
+									this.setState(States.CLOSE_FL, 0.9);
+									this.closeFL(() => {
+										if (!isWin) {
+											this.finaliseProduct();
+										}
+									}, true);
+								}
+							}
+						}
 					}
 				}
 			});
-		}, 200);
+		}, 400);
 	}
 
 	flRender() {
 		this.prepareRender(() => {
 			this.setState(States.RENDER, 0.1);
+			this.success = true;
 
-			const outputWatcher = chokidar.watch(this.safeProductPath, {
+			this.outputWatcher = chokidar.watch(this.safeProductPath, {
 				awaitWriteFinish: true
 			});
 			const onFileWritten = () => {
 				this.setState(States.CLOSE_FL, 0.9);
 				this.closeFL(() => {
 					if (!isWin) {
-						outputWatcher.close();
 						this.finaliseProduct();
 					}
 				}, true); // Force close FL after render
 			}
-			outputWatcher.on(isWin ? "unlink" : "change", onFileWritten);
+			this.outputWatcher.on(isWin ? "unlink" : "change", onFileWritten);
 
 			this.createInterval();
 
@@ -785,7 +815,6 @@ class RenderTask {
 			});
 			if (isWin) {
 				cp.on("close", (code, signal) => {
-					outputWatcher.close();
 					//console.log("Exited with code " + code + ", signal " + signal);
 					this.finaliseProduct();
 				});
@@ -794,11 +823,13 @@ class RenderTask {
 	}
 
 	finaliseProduct() {
+		this.outputWatcher.close();
 		clearInterval(this.interval);
-
-		this.copyProduct(() => {
-			//console.log("copied");
-		});
+		if (this.success) {
+			this.copyProduct(() => {
+				//console.log("copied");
+			});
+		}
 		this.onRenderDone();
 	}
 
@@ -819,7 +850,7 @@ class RenderTask {
 		this.setState(States.DONE);
 		RenderTask.isRendering = false;
 		this.jq.remove();
-		this.flp.onRenderTaskDone(this.output);
+		this.flp.onRenderTaskDone(this.output, this.success);
 		RenderTask.checkQueue();
 		this.updateRemaining();
 	}
