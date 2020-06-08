@@ -9,6 +9,7 @@ body {
 	--color-dark: hsl(33, 35%, 35%);
 	--gray: hsl(0, 0%, 30%);
 	--gray-dark: hsl(0, 0%, 20%);
+	--color-good: hsl(129, 62%, 70%);
 	--color-bad: hsl(12, 67%, 57%);
 	--color-highlight: hsl(54, 100%, 83%);
 
@@ -370,12 +371,13 @@ input:read-only {
 .file {
 	cursor: default;
 	filter: brightness(100%);
+	color: var(--color-good);
 }
 .file.enqueued {
 	color: var(--color-dark);
 }
 .file.up-to-date {
-	color: var(--color);
+	color: white;
 }
 .file.blacklisted {
 	color: #fffa;
