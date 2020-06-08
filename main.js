@@ -12,8 +12,7 @@ function createWindow() {
 		width: 650,
 		height: 400,
 		webPreferences: {
-			nodeIntegration: true,
-			nodeIntegrationInWorker: true
+			nodeIntegration: true
 		},
 		frame: !isWin,
 		titleBarStyle: isWin ? "default" : "hidden",

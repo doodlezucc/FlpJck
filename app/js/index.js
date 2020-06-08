@@ -573,6 +573,7 @@ class RenderTask {
 					})
 				)
 			)
+			.append($("<div/>").addClass("bg"))
 			.append(
 				$("<div/>")
 					.addClass("progressbar")
@@ -805,13 +806,13 @@ class RenderTask {
 		console.log("PSEUDO rendering " + this.fileName);
 		let i = 0;
 		const timeout = setInterval(() => {
-			this.setProgress(i / 100);
+			this.setProgress(i / 20);
 			i++;
-			if (i >= 100) {
+			if (i >= 20) {
 				clearInterval(timeout);
 				this.onRenderDone();
 			}
-		}, 150);
+		}, 500);
 	}
 
 	onRenderDone() {
