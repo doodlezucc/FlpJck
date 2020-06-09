@@ -553,6 +553,7 @@ const States = {
 	ENQUEUED: "Enqueued",
 	PREPARE_FL: "Preparing FL Studio",
 	CLOSE_FL: "Closing FL Studio",
+	LOAD_PROJECT: "Loading project",
 	RENDER: "Rendering",
 	DONE: "Done",
 };
@@ -724,6 +725,7 @@ class RenderTask {
 		let lastSources;
 		let rendering = false;
 		let start;
+		let previousBars = 0;
 
 		this.interval = setInterval(() => {
 			el.desktopCapturer.getSources({
@@ -764,6 +766,7 @@ class RenderTask {
 							// so, probably rendering
 							if (!rendering) {
 								rendering = true;
+								this.setState(States.RENDER, 0.15);
 								start = new Date();
 							}
 
@@ -771,7 +774,12 @@ class RenderTask {
 							const current = parseInt(progress.substr(0, progress.indexOf("/")));
 							const total = parseInt(progress.substr(progress.indexOf("/") + 1));
 
-							this.setProgress(0.1 + 0.8 * current / total);
+							if (current < previousBars) {
+								this.dead();
+							}
+							previousBars = current;
+
+							this.setProgress(0.15 + 0.75 * current / total);
 
 							if (this.success && elapsed >= renderingTimeout - 60 * 5) {
 								// FL might be messing up right now. smh my head.
@@ -796,21 +804,25 @@ class RenderTask {
 			console.log("FL might be stuck, terminating in "
 				+ (timeout - elapsed).toFixed(1) + " seconds.");
 		} else {
-			console.log("I diagnose you with dead.");
-			this.success = false;
-
-			this.setState(States.CLOSE_FL, 0.9);
-			this.closeFL(() => {
-				if (!isWin) {
-					this.finaliseProduct();
-				}
-			}, true);
+			this.dead();
 		}
+	}
+
+	dead() {
+		console.log("I diagnose you with dead.");
+		this.success = false;
+
+		this.setState(States.CLOSE_FL, 0.9);
+		this.closeFL(() => {
+			if (!isWin) {
+				this.finaliseProduct();
+			}
+		}, true);
 	}
 
 	flRender() {
 		this.prepareRender(() => {
-			this.setState(States.RENDER, 0.1);
+			this.setState(States.LOAD_PROJECT, 0.1);
 			this.success = true;
 
 			this.outputWatcher = chokidar.watch(this.safeProductPath, {
