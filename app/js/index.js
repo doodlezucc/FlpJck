@@ -22,6 +22,15 @@ const extension = ".flp";
 // After the timer has run out, FlpJck sends a terminate signal to Fruity Loops.
 const loadingTimeout = 120;
 
+// How long FL Studio may render a single project (in seconds).
+//
+// This can be useful if, for some reason, FL Studio
+// messes up the rendering process of one of your projects.
+//
+// The timer starts as soon as FL Studio is done loading the project.
+// After the timer has run out, FlpJck sends a terminate signal to Fruity Loops.
+const renderingTimeout = 60 * 45;
+
 const titleBar = new customTitlebar.Titlebar({
 	drag: true,
 });
@@ -745,44 +754,58 @@ class RenderTask {
 				}
 				else {
 					// Phase 2: Observe FL Studio's window title
+					const elapsed = (new Date().getTime() - start) / 1000;
+
 					const flSrc = sources.find((src) => src.id === flID);
 					if (flSrc) {
 						const s = flSrc.name;
 						if (s.includes("/") && s.lastIndexOf("/") > s.length - 5) {
 							// Window title looks something like ......./....
 							// so, probably rendering
-							rendering = true;
+							if (!rendering) {
+								rendering = true;
+								start = new Date();
+							}
+
 							const progress = s.substr(s.lastIndexOf(" ") + 1);
 							const current = parseInt(progress.substr(0, progress.indexOf("/")));
 							const total = parseInt(progress.substr(progress.indexOf("/") + 1));
 
 							this.setProgress(0.1 + 0.8 * current / total);
+
+							if (this.success && elapsed >= renderingTimeout - 60 * 5) {
+								// FL might be messing up right now. smh my head.
+								this.displayTimeout(elapsed, renderingTimeout);
+							}
 						}
 						else if (!rendering) {
 							// FL is loading the project
-							const elapsed = (new Date().getTime() - start) / 1000;
 							if (this.success && elapsed >= 10) {
 								// FL might be stuck, are samples or plugins missing?
-								if (elapsed < loadingTimeout) {
-									console.log("FL might be stuck, terminating in "
-										+ (loadingTimeout - elapsed).toFixed(1) + " seconds.");
-								} else {
-									console.log("I diagnose you with dead.");
-									this.success = false;
-
-									this.setState(States.CLOSE_FL, 0.9);
-									this.closeFL(() => {
-										if (!isWin) {
-											this.finaliseProduct();
-										}
-									}, true);
-								}
+								this.displayTimeout(elapsed, loadingTimeout);
 							}
 						}
 					}
 				}
 			});
 		}, 400);
+	}
+
+	displayTimeout(elapsed, timeout) {
+		if (elapsed < timeout) {
+			console.log("FL might be stuck, terminating in "
+				+ (timeout - elapsed).toFixed(1) + " seconds.");
+		} else {
+			console.log("I diagnose you with dead.");
+			this.success = false;
+
+			this.setState(States.CLOSE_FL, 0.9);
+			this.closeFL(() => {
+				if (!isWin) {
+					this.finaliseProduct();
+				}
+			}, true);
+		}
 	}
 
 	flRender() {
