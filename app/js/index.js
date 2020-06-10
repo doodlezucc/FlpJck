@@ -11,6 +11,9 @@ const chokidar = require("chokidar");
 const customTitlebar = require("custom-electron-titlebar");
 const isDev = require("electron-is-dev");
 const $ = require("jquery");
+const macPermissions = require('mac-screen-capture-permissions');
+
+//console.log(macPermissions.resetPermissions());
 
 const isWin = process.platform === "win32";
 const extension = ".flp";
@@ -705,6 +708,8 @@ class RenderTask {
 						}
 					}
 				});
+			} else {
+				callback();
 			}
 		}
 	}
@@ -727,6 +732,13 @@ class RenderTask {
 		let start;
 		let previousBars = 0;
 
+		if (!isWin) {
+			if (!macPermissions.hasScreenCapturePermission()) {
+				app.getCurrentWindow().setAlwaysOnTop(false);
+				return false;
+			}
+		}
+
 		this.interval = setInterval(() => {
 			el.desktopCapturer.getSources({
 				types: ["window"],
@@ -745,7 +757,7 @@ class RenderTask {
 								!lastSources.some((lastSrc) => src.id === lastSrc.id));
 							//console.log("new window: " + srcNew.name);
 
-							if (srcNew.name.startsWith("FL Studio ")) {
+							if (srcNew.name.startsWith("FL Studio")) {
 								flID = srcNew.id;
 								start = new Date();
 								//console.log("found you, " + flID);
@@ -775,28 +787,31 @@ class RenderTask {
 							const total = parseInt(progress.substr(progress.indexOf("/") + 1));
 
 							if (current < previousBars) {
+								console.log("FL seems to be caught in an endless loop!");
 								this.dead();
 							}
 							previousBars = current;
 
 							this.setProgress(0.15 + 0.75 * current / total);
-
+						}
+						else if (!rendering && isWin) {
+							// FL is loading the project
+							if (this.success && elapsed >= loadingTimeout - 10) {
+								// FL might be stuck, are samples or plugins missing?
+								this.displayTimeout(elapsed, loadingTimeout);
+							}
+						}
+						if (rendering || !isWin) {
 							if (this.success && elapsed >= renderingTimeout - 60 * 5) {
 								// FL might be messing up right now. smh my head.
 								this.displayTimeout(elapsed, renderingTimeout);
-							}
-						}
-						else if (!rendering) {
-							// FL is loading the project
-							if (this.success && elapsed >= 10) {
-								// FL might be stuck, are samples or plugins missing?
-								this.displayTimeout(elapsed, loadingTimeout);
 							}
 						}
 					}
 				}
 			});
 		}, 400);
+		return true;
 	}
 
 	displayTimeout(elapsed, timeout) {
@@ -838,7 +853,9 @@ class RenderTask {
 			}
 			this.outputWatcher.on(isWin ? "unlink" : "change", onFileWritten);
 
-			this.createInterval();
+			if (!this.createInterval()) {
+				return;
+			}
 
 			const command = "cmd.exe /C \"" + getExecPath() + "\" /Rout /Emp3 " + this.safePath;
 			//console.log(command);

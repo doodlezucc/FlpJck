@@ -1,6 +1,6 @@
 {
 	"name": "flpjck",
-	"version": "0.9.5",
+	"version": "0.9.8",
 	"description": "FL Studio render synchronizer",
 	"repository": {
 		"url": "https://github.com/FellowHead/FlpJck.git"
@@ -17,6 +17,17 @@
 		"win": {
 			"icon": "app/style/icon/icon.ico"
 		},
+		"mac": {
+			"category": "public.app-category.utilities",
+			"icon": "app/style/icon/icon.png",
+			"target": [
+				"dmg"
+			],
+			"asarUnpack": [
+				"**/node_modules/mac-screen-capture-permissions/**"
+			]
+		},
+		"copyright": "Copyright © 2020 ${author}",
 		"asar": true,
 		"asarUnpack": [
 			"app/vbs"
@@ -34,8 +45,12 @@
 		"electron-reload": "^1.5.0",
 		"fs": "0.0.1-security",
 		"jquery": "^3.5.0",
+		"mac-screen-capture-permissions": "^1.1.0",
 		"minimist": "^1.2.3",
 		"path": "^0.12.7",
 		"regedit": "^3.0.3"
+	},
+	"resolutions": {
+		"electron-util": "github:FellowHead/electron-util"
 	}
 }
