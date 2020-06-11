@@ -28,6 +28,10 @@ body {
 	position: relative;
 }
 
+.hidden {
+	display: none !important;
+}
+
 .titlebar {
 	background-color: var(--color-dark) !important;
 	box-shadow: 0 0 10px #0003 !important;
@@ -88,7 +92,7 @@ button:enabled:hover {
 .bottom-container {
 	display: flex;
 	position: relative;
-	height: calc(100% - 83px);
+	height: calc(100% - 109px);
 	top: var(--spacing);
 	padding-bottom: var(--spacing);
 }
@@ -202,6 +206,11 @@ input:read-only {
 }
 .directory.loading {
 	opacity: 60%;
+}
+
+.spacing {
+	width: 15px;
+	text-align: center;
 }
 
 /*

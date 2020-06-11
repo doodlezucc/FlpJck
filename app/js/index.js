@@ -122,7 +122,26 @@ $(document).ready(function() {
 			multiSelectTable.gatherSelected();
 		}
 	});
+	$("#showAll").click(function() {
+		setVisibility(visibility == Visibility.ALL ? Visibility.UNRENDERED : Visibility.ALL);
+		createTitleBar();
+		saveDataSync();
+	});
 });
+
+
+const Visibility = {
+	ALL: 0,
+	UNRENDERED: 1
+};
+let visibility = Visibility.UNRENDERED;
+
+function setVisibility(v) {
+	visibility = v;
+	$("#showAll").text(v == Visibility.ALL ? "All projects" : "Unrendered projects");
+	flps.forEach((flp) => flp.applyVisibility(v));
+}
+
 
 function addSrcDir(deep) {
 	openDialog((path) => {
@@ -395,7 +414,7 @@ class FLP {
 			});
 		}
 
-		this.jq = $("<tr/>").addClass("file")
+		this.jq = $("<tr/>").addClass("file hidden")
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>"))
@@ -431,6 +450,11 @@ class FLP {
 				this.updateRenderDisplay();
 			}
 		});
+	}
+
+	applyVisibility(v) {
+		console.log(this.fileName + " | " + this.upToDate);
+		this.jq.toggleClass("hidden", v == Visibility.ALL ? false : this.upToDate);
 	}
 
 	onOutDirChange() {
@@ -513,7 +537,7 @@ class FLP {
 	}
 
 	get upToDate() {
-		return this.lastRender && this.lastModified < this.lastRender;
+		return this.lastRender ? this.lastModified < this.lastRender : false;
 	}
 
 	isBlacklisted() {
@@ -521,6 +545,7 @@ class FLP {
 	}
 
 	updateRenderDisplay() {
+		this.applyVisibility(visibility);
 		this.jq.children().eq(2).text(this.lastModified.toLocaleString());
 		this.jq.children().eq(3).text(this.lastRender ? this.lastRender.toLocaleString() : "Never");
 		if (this.upToDate) {
@@ -1007,6 +1032,7 @@ function saveDataSync() {
 					deep: d.deep
 				};
 			}),
+			visibility: visibility,
 			blacklist: blacklist,
 			renderings: jRenderings
 		}, null, 2));
@@ -1031,6 +1057,7 @@ function setOutputDirectory(dir) {
 function loadData() {
 	if (fs.existsSync(savefile)) {
 		const userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
+		setVisibility(userData.visibility);
 		$("#execPath").text(userData.execPath);
 		setOutputDirectory(userData.outDir);
 		blacklist = userData.blacklist;
@@ -1042,6 +1069,7 @@ function loadData() {
 		userData.directories.forEach((dir) => new Directory(dir.path, dir.deep));
 	}
 	else {
+		setVisibility(Visibility.ALL);
 		setOutputDirectory(app.app.getPath("music"));
 
 		$("#execPath").text("None selected!");
@@ -1145,6 +1173,7 @@ function createTitleBar() {
 			},
 			{
 				label: "Select all",
+				enabled: visibility == Visibility.ALL,
 				click: () => {
 					multiSelectTable.selectMatching((flp) => !flp.isBlacklisted());
 				},

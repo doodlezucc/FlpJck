@@ -9,8 +9,8 @@ function createWindow() {
 	//el.Menu.setApplicationMenu(null);
 
 	let win = new el.BrowserWindow({
-		width: 650,
-		height: 400,
+		width: 850,
+		height: 500,
 		webPreferences: {
 			nodeIntegration: true
 		},
