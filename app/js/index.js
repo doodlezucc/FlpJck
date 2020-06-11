@@ -243,6 +243,7 @@ class MultiSelectTable {
 	gatherSelected() {
 		const sel = this.jq.children(".selected").not(".blacklisted").not(".enqueued");
 		$("#enqueue").prop("disabled", sel.length == 0);
+		$("#selected").text(sel.length + " selected");
 	}
 
 	clearSelection() {

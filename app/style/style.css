@@ -209,8 +209,9 @@ input:read-only {
 }
 
 .spacing {
-	width: 15px;
+	width: 100%;
 	text-align: center;
+	flex: 1;
 }
 
 /*
