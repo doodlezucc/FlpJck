@@ -218,7 +218,7 @@ class MultiSelectTable {
 	 * @param {JQuery} row 
 	 */
 	markSelected(row) {
-		if (!row.hasClass("enqueued")) {
+		if (!row.hasClass("enqueued") && !row.hasClass("hidden")) {
 			row.addClass("selected");
 		}
 	}
