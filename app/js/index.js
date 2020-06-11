@@ -154,6 +154,11 @@ function addSrcDir(deep) {
 	});
 }
 
+function displayUnrendered() {
+	const count = flps.filter((flp) => !flp.upToDate).length;
+	$("#outOfDate").text(count == 0 ? "" : ", " + count + " out of date")
+}
+
 class MultiSelectTable {
 	constructor() {
 		this.jq = $(".rows");
@@ -384,6 +389,7 @@ class Directory {
 			}
 			this.files = results;
 			this.jq.removeClass("loading");
+			displayUnrendered();
 		});
 	}
 
@@ -454,7 +460,6 @@ class FLP {
 	}
 
 	applyVisibility(v) {
-		console.log(this.fileName + " | " + this.upToDate);
 		this.jq.toggleClass("hidden", v == Visibility.ALL ? false : this.upToDate);
 	}
 
@@ -534,6 +539,7 @@ class FLP {
 			renderings.set(this.file, new Rendering(output, new Date(), this.lastModified, this.stats.size));
 			this.updateRenderDisplay();
 			saveDataSync();
+			displayUnrendered();
 		}
 	}
 
