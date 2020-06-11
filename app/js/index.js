@@ -129,19 +129,21 @@ $(document).ready(function() {
 	});
 });
 
-
 const Visibility = {
 	ALL: 0,
 	UNRENDERED: 1
 };
 let visibility = Visibility.UNRENDERED;
-
 function setVisibility(v) {
 	visibility = v;
 	$("#showAll").text(v == Visibility.ALL ? "All projects" : "Unrendered projects");
 	flps.forEach((flp) => flp.applyVisibility(v));
 }
 
+function displayUnrendered() {
+	const count = flps.filter((flp) => !flp.isBlacklisted() && !flp.upToDate).length;
+	$("#outOfDate").text(count == 0 ? "" : ", " + count + " out of date");
+}
 
 function addSrcDir(deep) {
 	openDialog((path) => {
@@ -152,11 +154,6 @@ function addSrcDir(deep) {
 		title: "Select a " + (deep ? "root " : "") + "directory to take Fruity Loops projects from",
 		defaultPath: app.app.getPath("documents")
 	});
-}
-
-function displayUnrendered() {
-	const count = flps.filter((flp) => !flp.upToDate).length;
-	$("#outOfDate").text(count == 0 ? "" : ", " + count + " out of date")
 }
 
 class MultiSelectTable {
@@ -192,6 +189,7 @@ class MultiSelectTable {
 			}
 		});
 		this.gatherSelected();
+		displayUnrendered();
 		saveDataSync();
 	}
 
@@ -1188,6 +1186,7 @@ function createTitleBar() {
 			},
 			{
 				label: "Select latest changes",
+				enabled: visibility == Visibility.ALL,
 				click: () => {
 					multiSelectTable.selectMatching((flp) => !flp.upToDate, true);
 				},
