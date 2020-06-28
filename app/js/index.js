@@ -18,6 +18,9 @@ const macPermissions = require('mac-screen-capture-permissions');
 const isWin = process.platform === "win32";
 const extension = ".flp";
 
+
+
+
 // How long FL Studio may load a project (in seconds).
 //
 // This can be useful when there are missing samples or demo version plugins inside a project.
@@ -33,6 +36,9 @@ const loadingTimeout = 120;
 // The timer starts as soon as FL Studio is done loading the project.
 // After the timer has run out, FlpJck sends a terminate signal to Fruity Loops.
 const renderingTimeout = 60 * 45;
+
+
+
 
 const titleBar = new customTitlebar.Titlebar({
 	drag: true,
@@ -360,6 +366,7 @@ class Directory {
 			if (p.extname(path) === extension && !flps.some((flp) => flp.file === path)) {
 				//console.log("flp add " + path);
 				new FLP(path, this);
+				displayUnrendered();
 			}
 		});
 	}
@@ -444,6 +451,7 @@ class FLP {
 		});
 		this.watcher.on("unlink", () => {
 			this.remove();
+			displayUnrendered();
 		});
 		this.watcher.on("change", (path, stats) => {
 			const oldSize = this.stats.size;
@@ -453,6 +461,7 @@ class FLP {
 				this.sortInit();
 
 				this.updateRenderDisplay();
+				displayUnrendered();
 			}
 		});
 	}
