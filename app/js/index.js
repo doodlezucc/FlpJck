@@ -133,6 +133,7 @@ $(document).ready(function() {
 		createTitleBar();
 		saveDataSync();
 	});
+	RenderTask.setPaused(false);
 });
 
 const Visibility = {
@@ -606,7 +607,8 @@ class RenderTask {
 	 * @type {RenderTask[]}
 	 */
 	static taskQueue = [];
-	static isRendering = false;
+	static rendering = false;
+	static isPaused = false;
 
 	/**
 	 * @param {FLP} flp 
@@ -655,7 +657,7 @@ class RenderTask {
 	}
 
 	updateRemaining() {
-		const remaining = $(".task-container").children().length;
+		const remaining = $(".task-container").children().not("#pausedblock").length;
 		if (remaining > 0) {
 			$("#remaining").text(remaining + " left");
 		} else {
@@ -675,8 +677,10 @@ class RenderTask {
 	 * @param {Number} progress
 	 */
 	setProgress(progress) {
-		this.progress = progress;
-		this.jq.css("--progress", (100 * this.progress) + "%");
+		if (!RenderTask.isPaused) {
+			this.progress = progress;
+			this.jq.css("--progress", (100 * this.progress) + "%");
+		}
 	}
 
 	get fileName() {
@@ -684,13 +688,15 @@ class RenderTask {
 	}
 
 	setState(state, progress) {
-		this.state = state;
-		console.log(this.fileName + " : " + this.state);
-		this.setProgress(progress);
+		if (!RenderTask.isPaused) {
+			this.state = state;
+			console.log(this.fileName + " : " + this.state);
+			this.setProgress(progress);
+		}
 	}
 
 	render() {
-		RenderTask.isRendering = true;
+		RenderTask.rendering = this;
 
 		//this.pseudoRender();
 		this.flRender();
@@ -866,7 +872,10 @@ class RenderTask {
 	dead() {
 		console.log("I diagnose you with dead.");
 		this.success = false;
+		this.closeAndFinalise();
+	}
 
+	closeAndFinalise() {
 		this.setState(States.CLOSE_FL, 0.9);
 		this.closeFL(() => {
 			if (!isWin) {
@@ -884,12 +893,9 @@ class RenderTask {
 				awaitWriteFinish: true
 			});
 			const onFileWritten = () => {
-				this.setState(States.CLOSE_FL, 0.9);
-				this.closeFL(() => {
-					if (!isWin) {
-						this.finaliseProduct();
-					}
-				}, true); // Force close FL after render
+				if (!RenderTask.isPaused) {
+					this.closeAndFinalise();
+				}
 			}
 			this.outputWatcher.on(isWin ? "unlink" : "change", onFileWritten);
 
@@ -907,7 +913,7 @@ class RenderTask {
 			});
 			if (isWin) {
 				cp.on("close", (code, signal) => {
-					//console.log("Exited with code " + code + ", signal " + signal);
+					console.log("Exited with code " + code + ", signal " + signal);
 					this.finaliseProduct();
 				});
 			}
@@ -917,12 +923,16 @@ class RenderTask {
 	finaliseProduct() {
 		this.outputWatcher.close();
 		clearInterval(this.interval);
-		if (this.success) {
-			this.copyProduct(() => {
-				//console.log("copied");
-			});
+		if (!RenderTask.isPaused) {
+			if (this.success) {
+				this.copyProduct(() => {
+					//console.log("copied");
+				});
+			}
+			this.onRenderDone();
+		} else {
+			RenderTask.rendering = false;
 		}
-		this.onRenderDone();
 	}
 
 	pseudoRender() {
@@ -940,7 +950,7 @@ class RenderTask {
 
 	onRenderDone() {
 		this.setState(States.DONE);
-		RenderTask.isRendering = false;
+		RenderTask.rendering = false;
 		this.jq.remove();
 		this.flp.onRenderTaskDone(this.output, this.success);
 		RenderTask.checkQueue();
@@ -952,8 +962,8 @@ class RenderTask {
 	}
 
 	static checkQueue() {
-		if (!this.isRendering) {
-			if (this.taskQueue.length) {
+		if (!this.rendering) {
+			if (this.taskQueue.length && !this.isPaused) {
 				const next = this.taskQueue.shift();
 				next.render();
 			} else {
@@ -967,6 +977,43 @@ class RenderTask {
 			}
 		}
 	}
+
+	cancel() {
+		RenderTask.taskQueue.unshift(this);
+		this.setState(States.ENQUEUED, 0);
+		RenderTask.isPaused = true;
+		this.closeAndFinalise();
+	}
+
+	static setPaused(v) {
+		$("#pause").children().toggleClass("fa-pause", !v);
+		$("#pause").children().toggleClass("fa-play", v);
+		$("#pause")[0].title = "Click to " + (v ? "unpause" : "pause") + " rendering";
+		if (!v) {
+			// Play
+			$("#pausedblock").remove();
+			RenderTask.isPaused = false;
+			this.checkQueue();
+		} else {
+			// Pause
+			$("<div/>")
+				.attr("id", "pausedblock")
+				.addClass("task")
+				.append($("<h2/>").text("PAUSED"))
+				.append($("<div/>").addClass("bg"))
+				.prependTo($(".task-container"));
+
+			if (this.rendering) {
+				this.rendering.cancel();
+			} else {
+				RenderTask.isPaused = true;
+			}
+		}
+	}
+}
+
+function togglePaused() {
+	RenderTask.setPaused(!RenderTask.isPaused);
 }
 
 function isFlRunning(callback) {
@@ -1089,7 +1136,10 @@ function loadData() {
 
 		$("#execPath").text("None selected!");
 		if (isWin) {
-			const dImageLine = "C:/Program Files (x86)/Image-Line/";
+			let dImageLine = "C:/Program Files (x86)/Image-Line/";
+			if (!fs.existsSync(dImageLine)) {
+				dImageLine = "C:/Program Files/Image-Line";
+			}
 			if (fs.existsSync(p.join(dImageLine, "FL Studio 20"))) {
 				$("#execPath").text(p.join(dImageLine, "FL Studio 20/FL64.exe"));
 			} else if (fs.existsSync(p.join(dImageLine, "FL Studio 12"))) {

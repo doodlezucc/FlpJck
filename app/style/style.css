@@ -237,24 +237,33 @@ input:read-only {
 	padding: 0 5px;
 	display: flex;
 }
-.tools button {
+.tools #enqueue {
 	margin: 0;
 }
-.tools button:disabled {
+.tools #enqueue:disabled {
 	opacity: 60%;
 }
 .tools #remaining {
 	white-space: nowrap;
 	align-self: center;
+	margin-right: 5px;
 }
 .space {
 	width: 100%;
 	height: 100%;
 }
+.tools #pause {
+	font-size: 14px;
+}
 
 .task-container {
 	text-align: center;
 	overflow-y: auto;
+}
+
+#pausedblock {
+	--progress: 100%;
+	text-align: center;
 }
 
 .task {
