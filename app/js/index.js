@@ -476,6 +476,7 @@ class FLP {
 			fs.stat(outFile, (err, stats) => {
 				this.outStats = stats;
 				this.updateRenderDisplay();
+				displayUnrendered();
 			});
 		} else {
 			this.outStats = null;
