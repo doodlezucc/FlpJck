@@ -535,10 +535,11 @@ class FLP {
 	}
 
 	enqueue() {
-		this.jq.removeClass("selected");
-		this.jq.addClass("enqueued");
-		this.task = new RenderTask(this);
-		RenderTask.checkQueue();
+		this.openInFL();
+		// this.jq.removeClass("selected");
+		// this.jq.addClass("enqueued");
+		// this.task = new RenderTask(this);
+		// RenderTask.checkQueue();
 	}
 
 	onRenderTaskDone(output, success) {
@@ -586,6 +587,10 @@ class FLP {
 
 	get rendering() {
 		return renderings.get(this.file);
+	}
+
+	openInFL() {
+		app.shell.openItem(this.file);
 	}
 }
 
@@ -988,7 +993,7 @@ class RenderTask {
 	static setPaused(v) {
 		$("#pause").children().toggleClass("fa-pause", !v);
 		$("#pause").children().toggleClass("fa-play", v);
-		$("#pause")[0].title = "Click to " + (v ? "unpause" : "pause") + " rendering";
+		$("#pause")[0].title = "Click to " + (v ? "resume" : "pause") + " rendering";
 		if (!v) {
 			// Play
 			$("#pausedblock").remove();
