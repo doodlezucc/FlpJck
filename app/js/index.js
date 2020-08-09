@@ -897,7 +897,7 @@ class RenderTask {
 					this.closeAndFinalise();
 				}
 			}
-			this.outputWatcher.on(isWin ? "unlink" : "change", onFileWritten);
+			this.outputWatcher.on("change", onFileWritten);
 
 			if (!this.createInterval()) {
 				return;

@@ -392,11 +392,11 @@ input:read-only {
 	filter: brightness(100%);
 	color: var(--color-good);
 }
-.file.enqueued {
-	color: var(--color-dark);
-}
 .file.up-to-date {
 	color: white;
+}
+.file.enqueued {
+	color: var(--color-dark);
 }
 .file.blacklisted {
 	color: #fffa;
