@@ -375,6 +375,7 @@ class Directory {
 		});
 		saveDataSync();
 		multiSelectTable.gatherSelected();
+		displayUnrendered();
 	}
 
 	refreshFiles() {
@@ -448,7 +449,7 @@ class FLP {
 					label: this.isBlacklisted() ? "Whitelist" : "Blacklist",
 					click: () => this.setBlacklisted(!this.isBlacklisted(), true)
 				}, {
-					label: "Open in FL Studio",
+					label: "Edit in FL Studio",
 					click: () => this.openInFL()
 				}]);
 			})
@@ -652,25 +653,28 @@ class RenderTask {
 		this.jq = $("<div/>")
 			.addClass("task")
 			.on("contextmenu", () => {
+				const qIndex = RenderTask.taskQueue.indexOf(this);
+
+				/**
+				 * @type {Array.<Electron.MenuItemConstructorOptions>}
+				 */
 				const items = [{
 					label: "Move to top",
 					click: () => this.moveToTop(),
-					enabled: RenderTask.taskQueue.indexOf(this) > 0
+					enabled: qIndex > 0
 				}, {
 					label: "Remove from queue",
-					click: () => this.remove(),
-					enabled: RenderTask.taskQueue.includes(this)
-				}
-				];
+					click: () => this.remove()
+				}];
 				if (RenderTask.isPaused) {
 					items.push({
 						type: "separator"
 					}, {
-						label: "Open in FL Studio",
+						label: "Edit in FL Studio",
 						click: () => this.flp.openInFL()
 					});
 				}
-				displayContextMenu(items);
+				displayContextMenu(items, this.jq);
 			})
 			.append($("<h2/>").text(this.fileName))
 			.append($("<div/>")
@@ -712,10 +716,14 @@ class RenderTask {
 	}
 
 	remove() {
-		RenderTask.taskQueue = RenderTask.taskQueue.filter((task) => task !== this);
-		this.jq.remove();
-		this.flp.jq.removeClass("enqueued");
-		this.updateRemaining();
+		if (RenderTask.rendering == this) {
+			this.dead();
+		} else {
+			RenderTask.taskQueue = RenderTask.taskQueue.filter((task) => task !== this);
+			this.jq.remove();
+			this.flp.jq.removeClass("enqueued");
+			this.updateRemaining();
+		}
 	}
 
 	updateRemaining() {
