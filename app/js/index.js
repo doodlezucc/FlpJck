@@ -400,12 +400,17 @@ class Directory {
 
 /**
  * @param {Array.<Electron.MenuItemConstructorOptions>} items 
+ * @param {JQuery} element
  */
-function displayContextMenu(items) {
+function displayContextMenu(items, element) {
+	element.addClass("context");
 	const menu = new Menu();
 	for (let i of items) {
 		menu.append(new MenuItem(i));
 	}
+	menu.on("menu-will-close", () => {
+		element.removeClass("context");
+	});
 	menu.popup();
 }
 
@@ -451,7 +456,7 @@ class FLP {
 				}, {
 					label: "Edit in FL Studio",
 					click: () => this.openInFL()
-				}]);
+				}], this.jq);
 			})
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))

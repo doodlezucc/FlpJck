@@ -316,6 +316,14 @@ input:read-only {
 	display: none;
 }
 
+.task:first-child:hover, .task:first-child.context {
+	color: var(--color-highlight);
+}
+
+.task:hover, .task.context {
+	background-color: var(--gray-dark);
+}
+
 .task h2 {
 	font-size: inherit;
 	font-weight: normal;
@@ -397,7 +405,7 @@ input:read-only {
 	color: #fffa;
 	filter: saturate(50%) brightness(70%);
 }
-.file:hover {
+.file:hover, .file.context {
 	background-color: var(--gray);
 }
 .file.selected {
