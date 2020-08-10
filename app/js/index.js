@@ -398,9 +398,9 @@ class Directory {
 }
 
 /**
- * @param {...Electron.MenuItemConstructorOptions} items 
+ * @param {Array.<Electron.MenuItemConstructorOptions>} items 
  */
-function displayContextMenu(...items) {
+function displayContextMenu(items) {
 	const menu = new Menu();
 	for (let i of items) {
 		menu.append(new MenuItem(i));
@@ -434,7 +434,7 @@ class FLP {
 		this.jq = $("<tr/>")
 			.addClass("file hidden")
 			.on("contextmenu", () => {
-				displayContextMenu({
+				displayContextMenu([{
 					label: "Enqueue",
 					click: () => this.enqueue(),
 					enabled: !this.jq.hasClass("enqueued")
@@ -450,7 +450,7 @@ class FLP {
 				}, {
 					label: "Open in FL Studio",
 					click: () => this.openInFL()
-				});
+				}]);
 			})
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
@@ -651,6 +651,27 @@ class RenderTask {
 		this.flp = flp;
 		this.jq = $("<div/>")
 			.addClass("task")
+			.on("contextmenu", () => {
+				const items = [{
+					label: "Move to top",
+					click: () => this.moveToTop(),
+					enabled: RenderTask.taskQueue.indexOf(this) > 0
+				}, {
+					label: "Remove from queue",
+					click: () => this.remove(),
+					enabled: RenderTask.taskQueue.includes(this)
+				}
+				];
+				if (RenderTask.isPaused) {
+					items.push({
+						type: "separator"
+					}, {
+						label: "Open in FL Studio",
+						click: () => this.flp.openInFL()
+					});
+				}
+				displayContextMenu(items);
+			})
 			.append($("<h2/>").text(this.fileName))
 			.append($("<div/>")
 				.addClass("buttons")
