@@ -184,15 +184,7 @@ class MultiSelectTable {
 	setBlacklisted(v) {
 		flps.forEach((flp) => {
 			if (flp.jq.hasClass("selected")) {
-				if (v) {
-					if (!flp.jq.hasClass("blacklisted")) {
-						flp.jq.addClass("blacklisted");
-						blacklist.push(flp.file);
-					}
-				} else {
-					flp.jq.removeClass("blacklisted");
-					blacklist = blacklist.filter((s) => s !== flp.file);
-				}
+				flp.setBlacklisted(v, false);
 			}
 		});
 		this.gatherSelected();
@@ -405,6 +397,17 @@ class Directory {
 	}
 }
 
+/**
+ * @param {...Electron.MenuItemConstructorOptions} items 
+ */
+function displayContextMenu(...items) {
+	const menu = new Menu();
+	for (let i of items) {
+		menu.append(new MenuItem(i));
+	}
+	menu.popup();
+}
+
 class FLP {
 	/**
 	 * @param {string} file 
@@ -430,20 +433,29 @@ class FLP {
 
 		this.jq = $("<tr/>")
 			.addClass("file hidden")
+			.on("contextmenu", () => {
+				displayContextMenu({
+					label: "Enqueue",
+					click: () => this.enqueue(),
+					enabled: !this.jq.hasClass("enqueued")
+				}, {
+					label: "Enqueue at first position",
+					click: () => this.enqueue(true),
+					enabled: !this.jq.hasClass("enqueued")
+				}, {
+					type: "separator"
+				}, {
+					label: this.isBlacklisted() ? "Whitelist" : "Blacklist",
+					click: () => this.setBlacklisted(!this.isBlacklisted(), true)
+				}, {
+					label: "Open in FL Studio",
+					click: () => this.openInFL()
+				});
+			})
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>"))
 			.append($("<td/>"));
-		// .append($("<div/>")
-		// 	.addClass("buttons")
-		// 	.append(
-		// 		$("<button/>", { title: "Blacklist" })
-		// 			.append(icon("times"))
-		// 			.click(() => {
-		// 				multiSelectTable.toggleBlacklist();
-		// 			})
-		// 	)
-		// );
 		if (this.isBlacklisted()) {
 			this.jq.addClass("blacklisted");
 		}
@@ -470,6 +482,23 @@ class FLP {
 
 	applyVisibility(v) {
 		this.jq.toggleClass("hidden", v == Visibility.ALL ? false : this.upToDate);
+	}
+
+	setBlacklisted(v, saveInstantly) {
+		if (v) {
+			if (!this.jq.hasClass("blacklisted")) {
+				this.jq.addClass("blacklisted");
+				blacklist.push(this.file);
+			}
+		} else {
+			this.jq.removeClass("blacklisted");
+			blacklist = blacklist.filter((s) => s !== this.file);
+		}
+
+		if (saveInstantly) {
+			displayUnrendered();
+			saveDataSync();
+		}
 	}
 
 	onOutDirChange() {
@@ -534,10 +563,10 @@ class FLP {
 		flps = flps.filter((flp) => flp !== this);
 	}
 
-	enqueue() {
+	enqueue(important) {
 		this.jq.removeClass("selected");
 		this.jq.addClass("enqueued");
-		this.task = new RenderTask(this);
+		this.task = new RenderTask(this, important);
 		RenderTask.checkQueue();
 	}
 
@@ -617,7 +646,7 @@ class RenderTask {
 	/**
 	 * @param {FLP} flp 
 	 */
-	constructor(flp) {
+	constructor(flp, important = false) {
 		const ref = this;
 		this.flp = flp;
 		this.jq = $("<div/>")
@@ -646,8 +675,16 @@ class RenderTask {
 				$("<div/>")
 					.addClass("progressbar")
 					.append($("<div/>").addClass("progress"))
-			).appendTo($(".task-container"));
-		RenderTask.taskQueue.push(this);
+			);
+
+		if (important) {
+			RenderTask.taskQueue.unshift(this);
+			$(".task-container").children().first().after(this.jq);
+		} else {
+			RenderTask.taskQueue.push(this);
+			this.jq.appendTo($(".task-container"));
+		}
+
 		this.setState(States.ENQUEUED, 0);
 		this.updateRemaining();
 		RenderTask.checkQueue();
@@ -997,7 +1034,6 @@ class RenderTask {
 			// Play
 			$("#pausedblock").remove();
 			RenderTask.isPaused = false;
-			this.checkQueue();
 		} else {
 			// Pause
 			$("<div/>")
@@ -1009,10 +1045,12 @@ class RenderTask {
 
 			if (this.rendering) {
 				this.rendering.cancel();
+				RenderTask.rendering = false;
 			} else {
 				RenderTask.isPaused = true;
 			}
 		}
+		this.checkQueue();
 	}
 }
 
@@ -1297,6 +1335,8 @@ function createTitleBar() {
 	document.addEventListener("keydown", (ev) => {
 		if (ev.ctrlKey && ev.key === "a") {
 			selectAllUnrendered();
+		} else if (ev.ctrlKey && ev.key === "I") {
+			app.getCurrentWebContents().openDevTools();
 		}
 	});
 	titleBar.updateMenu(menu);
