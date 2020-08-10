@@ -382,6 +382,7 @@ class Directory {
 			}
 		});
 		saveDataSync();
+		multiSelectTable.gatherSelected();
 	}
 
 	refreshFiles() {
@@ -427,7 +428,8 @@ class FLP {
 			});
 		}
 
-		this.jq = $("<tr/>").addClass("file hidden")
+		this.jq = $("<tr/>")
+			.addClass("file hidden")
 			.append($("<td/>").text(this.fileName))
 			.append($("<td/>").text(this.directoryName))
 			.append($("<td/>"))
@@ -462,7 +464,6 @@ class FLP {
 				this.sortInit();
 
 				this.updateRenderDisplay();
-				displayUnrendered();
 			}
 		});
 	}
@@ -477,7 +478,6 @@ class FLP {
 			fs.stat(outFile, (err, stats) => {
 				this.outStats = stats;
 				this.updateRenderDisplay();
-				displayUnrendered();
 			});
 		} else {
 			this.outStats = null;
@@ -535,11 +535,10 @@ class FLP {
 	}
 
 	enqueue() {
-		this.openInFL();
-		// this.jq.removeClass("selected");
-		// this.jq.addClass("enqueued");
-		// this.task = new RenderTask(this);
-		// RenderTask.checkQueue();
+		this.jq.removeClass("selected");
+		this.jq.addClass("enqueued");
+		this.task = new RenderTask(this);
+		RenderTask.checkQueue();
 	}
 
 	onRenderTaskDone(output, success) {
@@ -549,7 +548,6 @@ class FLP {
 			renderings.set(this.file, new Rendering(output, new Date(), this.lastModified, this.stats.size));
 			this.updateRenderDisplay();
 			saveDataSync();
-			displayUnrendered();
 		}
 	}
 
@@ -570,6 +568,7 @@ class FLP {
 		} else {
 			this.jq.removeClass("up-to-date");
 		}
+		displayUnrendered();
 	}
 
 	get lastRender() {
