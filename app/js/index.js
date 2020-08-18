@@ -1030,19 +1030,20 @@ class RenderTask {
 			this.outputWatcher = chokidar.watch(this.safeProductPath, {
 				awaitWriteFinish: true
 			});
-			const onFileWritten = () => {
-				if (!RenderTask.isPaused) {
-					this.closeAndFinalise();
+			this.outputWatcher.on("change", (path, stats) => {
+				if (stats.size > 0) {
+					if (!RenderTask.isPaused) {
+						this.closeAndFinalise();
+					}
 				}
-			}
-			this.outputWatcher.on("change", onFileWritten);
+			});
 
 			if (!this.createInterval()) {
 				return;
 			}
 
 			const command = "cmd.exe /C \"" + getExecPath() + "\" /Rout /E" + renderExtension + " " + this.safePath;
-			console.log(command);
+			//console.log(command);
 			const cp = isWin ? childProcess.spawn("start", ["/min", "", command], {
 				shell: true,
 			}) : childProcess.spawn("open", ["\"" + getExecPath() + "\"",
