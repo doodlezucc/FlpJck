@@ -130,6 +130,7 @@ $(document).ready(function() {
 	});
 	$("#showAll").click(function() {
 		setVisibility(visibility == Visibility.ALL ? Visibility.UNRENDERED : Visibility.ALL);
+		multiSelectTable.gatherSelected();
 		updateMenuBar();
 		saveDataSync();
 	});
@@ -535,6 +536,9 @@ class FLP {
 	}
 
 	applyVisibility(v) {
+		if (v == Visibility.UNRENDERED && this.upToDate) {
+			this.jq.removeClass("selected");
+		}
 		this.jq.toggleClass("hidden", v == Visibility.ALL ? false : this.upToDate);
 	}
 
@@ -659,12 +663,16 @@ class FLP {
 		if (v && !this.upToDate) {
 			renderings.set(this.file, new Rendering(null, new Date()));
 			this.updateRenderDisplay();
+			if (visibility == Visibility.UNRENDERED) {
+				this.jq.removeClass("selected");
+			}
 		} else if (!v) {
 			renderings.delete(this.file);
 			this.updateRenderDisplay();
 		}
 
 		if (!skipSave) {
+			multiSelectTable.gatherSelected();
 			saveDataSync();
 		}
 	}
@@ -1387,7 +1395,7 @@ function updateMenuBar() {
 				click: () => {
 					multiSelectTable.selectMatching((flp) => !flp.upToDate, true);
 				},
-				accelerator: "CmdOrCtrl+E",
+				accelerator: "A",
 				enabled: visibility == Visibility.ALL
 			},
 			{
@@ -1398,7 +1406,7 @@ function updateMenuBar() {
 				click: () => {
 					$("#enqueue").click();
 				},
-				accelerator: "CmdOrCtrl+R",
+				accelerator: "R",
 				enabled: enableSelect
 			},
 			{
@@ -1406,7 +1414,7 @@ function updateMenuBar() {
 				click: () => {
 					multiSelectTable.toggleBlacklist();
 				},
-				accelerator: "CmdOrCtrl+B",
+				accelerator: "B",
 				enabled: enableBlacklist
 			},
 			{
@@ -1414,7 +1422,7 @@ function updateMenuBar() {
 				click: () => {
 					multiSelectTable.toggleRenderedState();
 				},
-				accelerator: "CmdOrCtrl+M",
+				accelerator: "M",
 				enabled: enableSelect
 			},
 		]

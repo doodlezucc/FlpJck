@@ -354,7 +354,7 @@ input:read-only {
 .file-container {
 	border-collapse: separate;
 	border-spacing: 0;
-	background-color: var(--gray);
+	background-color: var(--gray-dark);
 	display: table-row-group;
 	overflow-y: auto;
 	width: calc(100% - var(--task-window-width) - var(--spacing));
