@@ -217,13 +217,13 @@ class MultiSelectTable {
 	 * @param {JQuery.ClickEvent} event 
 	 */
 	onclick(row, event) {
-		if (event.shiftKey) {
+		if (event && event.shiftKey) {
 			if (row.hasClass("enqueued")) return;
 			if (!event.ctrlKey) {
 				this.clearSelection();
 			}
 			this.selectRange(this.pivot, this.getIndex(row));
-		} else if (event.ctrlKey) {
+		} else if (event && event.ctrlKey) {
 			if (row.hasClass("enqueued")) return;
 			this.pivot = this.getIndex(row);
 			row.toggleClass("selected");
@@ -464,7 +464,8 @@ class FLP {
 
 		this.jq = $("<tr/>")
 			.addClass("file hidden")
-			.on("contextmenu", () => {
+			.on("contextmenu", (e) => {
+				multiSelectTable.onclick(this.jq);
 				displayContextMenu([{
 					label: "Enqueue",
 					click: () => this.enqueue(),
