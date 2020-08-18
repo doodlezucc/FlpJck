@@ -957,6 +957,7 @@ class RenderTask {
 					const flSrc = sources.find((src) => src.id === flID);
 					if (flSrc) {
 						const s = flSrc.name;
+						console.log("Window title: " + s);
 						if (s.includes("/") && s.lastIndexOf("/") > s.length - 5) {
 							// Window title looks something like ......./....
 							// so, probably rendering
@@ -1036,6 +1037,9 @@ class RenderTask {
 						this.closeAndFinalise();
 					}
 				}
+			});
+			this.outputWatcher.on("unlink", () => {
+				console.log("hey there, actually unlink");
 			});
 
 			if (!this.createInterval()) {
@@ -1127,7 +1131,7 @@ class RenderTask {
 	static setPaused(v) {
 		$("#pause").children().toggleClass("fa-pause", !v);
 		$("#pause").children().toggleClass("fa-play", v);
-		$("#pause")[0].title = "Click to " + (v ? "resume" : "pause") + " rendering";
+		$("#pause")[0].title = "Click to " + (v ? "resume" : "pause") + " rendering (or press P)";
 		if (!v) {
 			// Play
 			$("#pausedblock").remove();
@@ -1440,10 +1444,14 @@ function updateMenuBar() {
 
 function createKeyListener() {
 	document.addEventListener("keydown", (ev) => {
-		if (ev.ctrlKey && ev.key === "a") {
-			multiSelectTable.selectAllUnrendered();
-		} else if (ev.ctrlKey && ev.key === "I") {
-			app.getCurrentWebContents().openDevTools();
+		if (!ev.repeat) {
+			if (ev.ctrlKey && ev.key === "a") {
+				multiSelectTable.selectAllUnrendered();
+			} else if (ev.ctrlKey && ev.key === "I") {
+				app.getCurrentWebContents().openDevTools();
+			} else if (ev.key === "p") {
+				togglePaused();
+			}
 		}
 	});
 }
