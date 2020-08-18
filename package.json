@@ -1,6 +1,6 @@
 {
 	"name": "flpjck",
-	"version": "0.9.8",
+	"version": "0.9.9",
 	"description": "FL Studio render synchronizer",
 	"repository": {
 		"url": "https://github.com/FellowHead/FlpJck.git"
