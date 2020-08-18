@@ -526,14 +526,11 @@ class FLP {
 			displayUnrendered();
 		});
 		this.watcher.on("change", (path, stats) => {
-			const oldSize = this.stats.size;
 			this.stats = stats;
-			if (stats.size != oldSize) {
-				flps = flps.filter((flp) => flp !== this);
-				this.sortInit();
+			flps = flps.filter((flp) => flp !== this);
+			this.sortInit();
 
-				this.updateRenderDisplay();
-			}
+			this.updateRenderDisplay();
 		});
 	}
 
@@ -613,7 +610,7 @@ class FLP {
 	}
 
 	get lastModified() {
-		return (this.rendering && this.rendering.inputSize == this.stats.size) ? this.rendering.inputModified : this.stats.mtime;
+		return this.stats.mtime;
 	}
 
 	remove() {
@@ -632,7 +629,7 @@ class FLP {
 		this.task = null;
 		this.jq.removeClass("enqueued");
 		if (success) {
-			renderings.set(this.file, new Rendering(output, new Date(), this.lastModified, this.stats.size));
+			renderings.set(this.file, new Rendering(output, new Date()));
 			this.updateRenderDisplay();
 			saveDataSync();
 		}
@@ -660,7 +657,7 @@ class FLP {
 
 	forceRenderedState(v, skipSave) {
 		if (v && !this.upToDate) {
-			renderings.set(this.file, new Rendering(null, new Date(), this.lastModified, this.stats.size));
+			renderings.set(this.file, new Rendering(null, new Date()));
 			this.updateRenderDisplay();
 		} else if (!v) {
 			renderings.delete(this.file);
@@ -1175,14 +1172,10 @@ class Rendering {
 	/**
 	 * @param {string} output 
 	 * @param {Date} date 
-	 * @param {Date} inputModified 
-	 * @param {number} inputSize 
 	 */
-	constructor(output, date, inputModified, inputSize) {
+	constructor(output, date) {
 		this.output = output;
 		this.date = date;
-		this.inputModified = inputModified;
-		this.inputSize = inputSize;
 	}
 }
 
@@ -1221,9 +1214,7 @@ function saveDataSync() {
 	renderings.forEach((r, flp) => {
 		jRenderings[flp] = {
 			output: r.output,
-			date: r.date.getTime(),
-			inputModified: r.inputModified.getTime(),
-			inputSize: r.inputSize
+			date: r.date.getTime()
 		};
 	});
 	fs.writeFileSync(savefile, JSON.stringify(
@@ -1270,7 +1261,7 @@ function loadData() {
 
 		for (const key in userData.renderings) {
 			const r = userData.renderings[key];
-			renderings.set(key, new Rendering(r.output, new Date(r.date), new Date(r.inputModified), r.inputSize));
+			renderings.set(key, new Rendering(r.output, new Date(r.date)));
 		}
 		userData.directories.forEach((dir) => new Directory(dir.path, dir.deep));
 	}
