@@ -1350,7 +1350,7 @@ function updateMenuBar() {
 			{
 				label: "Select all unrendered",
 				click: () => {
-					selectAllUnrendered();
+					multiSelectTable.selectAllUnrendered();
 				},
 				accelerator: "CmdOrCtrl+A"
 			},
