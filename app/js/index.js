@@ -788,12 +788,17 @@ class RenderTask {
 					.append($("<div/>").addClass("progress"))
 			);
 
+		const container = $(".task-container");
 		if (important) {
 			RenderTask.taskQueue.unshift(this);
-			$(".task-container").children().first().after(this.jq);
+			if (container.children().length > 1) {
+				container.children().not("#pausedblock").first().before(this.jq);
+			} else {
+				container.append(this.jq);
+			}
 		} else {
 			RenderTask.taskQueue.push(this);
-			this.jq.appendTo($(".task-container"));
+			this.jq.appendTo(container);
 		}
 
 		this.setState(States.ENQUEUED, 0);
