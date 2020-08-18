@@ -100,7 +100,7 @@ $(document).ready(function() {
 			title: "Locate the Fruity Loops executable to use",
 			defaultPath: dirname.length > 1
 				? dirname
-				: (isWin ? "C:/Program Files (x86)" : "/Applications")
+				: (isWin ? "C:/Program Files" : "/Applications")
 		});
 	});
 	$("#outDir").click(function() {
@@ -181,15 +181,34 @@ class MultiSelectTable {
 		this.setBlacklisted(doBlacklist);
 	}
 
-	setBlacklisted(v) {
+	toggleRenderedState() {
+		let doSetRendered = false;
+		for (let flp of flps) {
+			if (flp.jq.hasClass("selected") && !flp.upToDate) {
+				doSetRendered = true;
+				continue;
+			}
+		}
+		this.forceRenderedState(doSetRendered);
+	}
+
+	flpAction(action) {
 		flps.forEach((flp) => {
 			if (flp.jq.hasClass("selected")) {
-				flp.setBlacklisted(v, false);
+				action(flp);
 			}
 		});
 		this.gatherSelected();
 		displayUnrendered();
 		saveDataSync();
+	}
+
+	setBlacklisted(v) {
+		this.flpAction(flp => flp.setBlacklisted(v, true));
+	}
+
+	forceRenderedState(v) {
+		this.flpAction(flp => flp.forceRenderedState(v, true));
 	}
 
 	/**
@@ -452,7 +471,7 @@ class FLP {
 					type: "separator"
 				}, {
 					label: this.isBlacklisted() ? "Whitelist" : "Blacklist",
-					click: () => this.setBlacklisted(!this.isBlacklisted(), true)
+					click: () => this.setBlacklisted(!this.isBlacklisted(), false)
 				}, {
 					label: "Edit in FL Studio",
 					click: () => this.openInFL()
@@ -490,7 +509,7 @@ class FLP {
 		this.jq.toggleClass("hidden", v == Visibility.ALL ? false : this.upToDate);
 	}
 
-	setBlacklisted(v, saveInstantly) {
+	setBlacklisted(v, skipSave) {
 		if (v) {
 			if (!this.jq.hasClass("blacklisted")) {
 				this.jq.addClass("blacklisted");
@@ -501,7 +520,7 @@ class FLP {
 			blacklist = blacklist.filter((s) => s !== this.file);
 		}
 
-		if (saveInstantly) {
+		if (!skipSave) {
 			displayUnrendered();
 			saveDataSync();
 		}
@@ -604,6 +623,20 @@ class FLP {
 			this.jq.removeClass("up-to-date");
 		}
 		displayUnrendered();
+	}
+
+	forceRenderedState(v, skipSave) {
+		if (v && !this.upToDate) {
+			renderings.set(this.file, new Rendering(null, new Date(), this.lastModified, this.stats.size));
+			this.updateRenderDisplay();
+		} else if (!v) {
+			renderings.delete(this.file);
+			this.updateRenderDisplay();
+		}
+
+		if (!skipSave) {
+			saveDataSync();
+		}
 	}
 
 	get lastRender() {
@@ -1332,7 +1365,7 @@ function createTitleBar() {
 				type: "separator"
 			},
 			{
-				label: "Render selected",
+				label: "Render/Enqueue selected",
 				click: () => {
 					$("#enqueue").click();
 				},
@@ -1344,6 +1377,13 @@ function createTitleBar() {
 					multiSelectTable.toggleBlacklist();
 				},
 				accelerator: "CmdOrCtrl+B"
+			},
+			{
+				label: "Mark as (un-)rendered",
+				click: () => {
+					multiSelectTable.toggleRenderedState();
+				},
+				accelerator: "CmdOrCtrl+M"
 			},
 		]
 	}));
