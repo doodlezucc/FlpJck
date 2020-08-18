@@ -489,14 +489,19 @@ class FLP {
 			.addClass("file hidden")
 			.on("contextmenu", (e) => {
 				multiSelectTable.onclick(this.jq);
+				const inQueue = this.jq.hasClass("enqueued");
 				displayContextMenu([{
 					label: "Enqueue",
 					click: () => this.enqueue(),
-					enabled: !this.jq.hasClass("enqueued")
+					visible: !inQueue
 				}, {
 					label: "Enqueue at first position",
 					click: () => this.enqueue(true),
-					enabled: !this.jq.hasClass("enqueued")
+					visible: !inQueue
+				}, {
+					label: "Remove from queue",
+					click: () => this.task.remove(),
+					visible: inQueue
 				}, {
 					type: "separator"
 				}, {
@@ -504,10 +509,12 @@ class FLP {
 					click: () => this.setBlacklisted(!this.isBlacklisted(), false)
 				}, {
 					label: "Mark as " + (this.upToDate ? "un" : "") + "rendered",
-					click: () => this.forceRenderedState(!this.upToDate, false)
+					click: () => this.forceRenderedState(!this.upToDate, false),
+					enabled: !this.task
 				}, {
 					label: "Edit in FL Studio",
-					click: () => this.openInFL()
+					click: () => this.openInFL(),
+					enabled: !RenderTask.rendering
 				}], this.jq);
 			})
 			.append($("<td/>").text(this.fileName))
@@ -547,6 +554,9 @@ class FLP {
 			if (!this.jq.hasClass("blacklisted")) {
 				this.jq.addClass("blacklisted");
 				blacklist.push(this.file);
+				if (this.task) {
+					this.task.remove();
+				}
 			}
 		} else {
 			this.jq.removeClass("blacklisted");
@@ -1129,7 +1139,7 @@ class RenderTask {
 		}
 	}
 
-	cancel() {
+	onPause() {
 		RenderTask.taskQueue.unshift(this);
 		this.setState(States.ENQUEUED, 0);
 		RenderTask.isPaused = true;
@@ -1153,8 +1163,8 @@ class RenderTask {
 				.append($("<div/>").addClass("bg"))
 				.prependTo($(".task-container"));
 
-			if (this.rendering) {
-				this.rendering.cancel();
+			if (RenderTask.rendering) {
+				RenderTask.rendering.onPause();
 				RenderTask.rendering = false;
 			} else {
 				RenderTask.isPaused = true;
