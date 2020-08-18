@@ -130,7 +130,7 @@ $(document).ready(function() {
 	});
 	$("#showAll").click(function() {
 		setVisibility(visibility == Visibility.ALL ? Visibility.UNRENDERED : Visibility.ALL);
-		createTitleBar();
+		updateMenuBar();
 		saveDataSync();
 	});
 	RenderTask.setPaused(false);
@@ -167,6 +167,7 @@ class MultiSelectTable {
 	constructor() {
 		this.jq = $(".rows");
 		this.pivot = 0;
+		this.selectedCount = 0;
 	}
 
 	/**
@@ -261,10 +262,15 @@ class MultiSelectTable {
 		multiSelectTable.gatherSelected();
 	}
 
+	selectAllUnrendered() {
+		multiSelectTable.selectMatching((flp) => !flp.upToDate && !flp.isBlacklisted());
+	}
+
 	gatherSelected() {
-		const sel = this.jq.children(".selected").not(".blacklisted").not(".enqueued");
-		$("#enqueue").prop("disabled", sel.length == 0);
-		$("#selected").text(sel.length + " selected");
+		this.selectedCount = this.jq.children(".selected").not(".blacklisted").not(".enqueued").length;
+		$("#enqueue").prop("disabled", this.selectedCount == 0);
+		$("#selected").text(this.selectedCount + " selected");
+		updateMenuBar();
 	}
 
 	clearSelection() {
@@ -521,6 +527,7 @@ class FLP {
 		}
 
 		if (!skipSave) {
+			multiSelectTable.gatherSelected();
 			displayUnrendered();
 			saveDataSync();
 		}
@@ -1305,11 +1312,7 @@ function onClickAbout() {
 	});
 }
 
-function createTitleBar() {
-	const selectAllUnrendered = function() {
-		multiSelectTable.selectMatching((flp) => !flp.upToDate && !flp.isBlacklisted());
-	}
-
+function updateMenuBar() {
 	const menu = new Menu();
 	const aboutItem = {
 		label: "About FlpJck",
@@ -1335,6 +1338,8 @@ function createTitleBar() {
 			]
 		}));
 	}
+	let enableSelect = multiSelectTable.selectedCount > 0;
+	let enableBlacklist = multiSelectTable.jq.children(".selected").not(".enqueued").length > 0;
 	menu.append(new MenuItem({
 		label: "Selection",
 		submenu: [
@@ -1355,11 +1360,11 @@ function createTitleBar() {
 			},
 			{
 				label: "Select latest changes",
-				enabled: visibility == Visibility.ALL,
 				click: () => {
 					multiSelectTable.selectMatching((flp) => !flp.upToDate, true);
 				},
-				accelerator: "CmdOrCtrl+E"
+				accelerator: "CmdOrCtrl+E",
+				enabled: visibility == Visibility.ALL
 			},
 			{
 				type: "separator"
@@ -1369,21 +1374,24 @@ function createTitleBar() {
 				click: () => {
 					$("#enqueue").click();
 				},
-				accelerator: "CmdOrCtrl+R"
+				accelerator: "CmdOrCtrl+R",
+				enabled: enableSelect
 			},
 			{
 				label: "(Un-)Blacklist selected",
 				click: () => {
 					multiSelectTable.toggleBlacklist();
 				},
-				accelerator: "CmdOrCtrl+B"
+				accelerator: "CmdOrCtrl+B",
+				enabled: enableBlacklist
 			},
 			{
 				label: "Mark as (un-)rendered",
 				click: () => {
 					multiSelectTable.toggleRenderedState();
 				},
-				accelerator: "CmdOrCtrl+M"
+				accelerator: "CmdOrCtrl+M",
+				enabled: enableSelect
 			},
 		]
 	}));
@@ -1406,15 +1414,19 @@ function createTitleBar() {
 		label: "Help",
 		submenu: helpSubmenu
 	}));
-	document.addEventListener("keydown", (ev) => {
-		if (ev.ctrlKey && ev.key === "a") {
-			selectAllUnrendered();
-		} else if (ev.ctrlKey && ev.key === "I") {
-			app.getCurrentWebContents().openDevTools();
-		}
-	});
 	titleBar.updateMenu(menu);
 	app.getCurrentWindow().setMenu(menu);
 }
 
-createTitleBar();
+function createKeyListener() {
+	document.addEventListener("keydown", (ev) => {
+		if (ev.ctrlKey && ev.key === "a") {
+			multiSelectTable.selectAllUnrendered();
+		} else if (ev.ctrlKey && ev.key === "I") {
+			app.getCurrentWebContents().openDevTools();
+		}
+	});
+}
+
+updateMenuBar();
+createKeyListener();
