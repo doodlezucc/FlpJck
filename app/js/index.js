@@ -116,7 +116,7 @@ $(document).ready(function() {
 	$("#enqueue").click(function() {
 		flps.forEach((flp) => {
 			if (flp.jq.hasClass("selected") && !flp.jq.hasClass("blacklisted") && !flp.jq.hasClass("enqueued")) {
-				flp.enqueue();
+				flp.enqueue(false, true);
 			}
 		});
 		multiSelectTable.clearSelection();
@@ -632,11 +632,14 @@ class FLP {
 		flps = flps.filter((flp) => flp !== this);
 	}
 
-	enqueue(important) {
+	enqueue(important, skipUnselect) {
 		this.jq.removeClass("selected");
 		this.jq.addClass("enqueued");
 		this.task = new RenderTask(this, important);
 		RenderTask.checkQueue();
+		if (!skipUnselect) {
+			multiSelectTable.clearSelection();
+		}
 	}
 
 	onRenderTaskDone(output, success) {
