@@ -133,8 +133,30 @@ $(document).ready(function() {
 		updateMenuBar();
 		saveDataSync();
 	});
+	$("#format").click(function() {
+		nextExtension();
+	});
 	RenderTask.setPaused(false);
 });
+
+let renderExtension = "mp3";
+
+const extensions = [
+	"mp3",
+	"wav",
+	"flac",
+	"ogg"
+];
+
+function setExtension(s) {
+	renderExtension = s;
+	$("#format").text(s.toUpperCase());
+}
+
+function nextExtension() {
+	setExtension(extensions[(extensions.indexOf(renderExtension) + 1) % extensions.length]);
+	saveDataSync();
+}
 
 const Visibility = {
 	ALL: 0,
@@ -841,7 +863,7 @@ class RenderTask {
 		return p.join(this.safeDir, "FlpJck.flp");
 	}
 	get safeProductPath() {
-		return p.join(this.safeDir, "out.mp3");
+		return p.join(this.safeDir, "out." + renderExtension);
 	}
 
 	copySource(callback) {
@@ -1022,12 +1044,12 @@ class RenderTask {
 				return;
 			}
 
-			const command = "cmd.exe /C \"" + getExecPath() + "\" /Rout /Emp3 " + this.safePath;
-			//console.log(command);
+			const command = "cmd.exe /C \"" + getExecPath() + "\" /Rout /E" + renderExtension + " " + this.safePath;
+			console.log(command);
 			const cp = isWin ? childProcess.spawn("start", ["/min", "", command], {
 				shell: true,
 			}) : childProcess.spawn("open", ["\"" + getExecPath() + "\"",
-				"--args", "-Rout", "-Emp3", this.safePath], {
+				"--args", "-Rout", "-E" + renderExtension, this.safePath], {
 				shell: true,
 			});
 			if (isWin) {
@@ -1077,7 +1099,7 @@ class RenderTask {
 	}
 
 	get output() {
-		return p.join(getOutputDirectory(), this.fileName + ".mp3");
+		return p.join(getOutputDirectory(), this.fileName + "." + renderExtension);
 	}
 
 	static checkQueue() {
@@ -1208,6 +1230,7 @@ function saveDataSync() {
 		{
 			execPath: getExecPath(),
 			outDir: getOutputDirectory(),
+			format: renderExtension,
 			directories: directories.map((d) => {
 				return {
 					path: d.path,
@@ -1241,6 +1264,7 @@ function loadData() {
 		const userData = JSON.parse(fs.readFileSync(savefile, "utf8"));
 		setVisibility(userData.visibility);
 		$("#execPath").text(userData.execPath);
+		setExtension(userData.format || "mp3");
 		setOutputDirectory(userData.outDir);
 		blacklist = userData.blacklist;
 

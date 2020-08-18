@@ -214,6 +214,10 @@ input:read-only {
 	flex: 1;
 }
 
+.spacing-small {
+	margin: 0 10px;
+}
+
 /*
 	TASKS
 */
