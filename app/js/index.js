@@ -480,6 +480,9 @@ class FLP {
 					label: this.isBlacklisted() ? "Whitelist" : "Blacklist",
 					click: () => this.setBlacklisted(!this.isBlacklisted(), false)
 				}, {
+					label: "Mark as " + (this.upToDate ? "un" : "") + "rendered",
+					click: () => this.forceRenderedState(!this.upToDate, false)
+				}, {
 					label: "Edit in FL Studio",
 					click: () => this.openInFL()
 				}], this.jq);
