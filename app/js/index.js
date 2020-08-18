@@ -595,7 +595,7 @@ class FLP {
 	get outFile() {
 		const fileMaybe = filesInOutDir.find((file) => {
 			const base = p.basename(file);
-			return base.substr(0, base.length - 4) === this.fileName;
+			return base.substr(0, base.lastIndexOf(".")) === this.fileName;
 		});
 		return fileMaybe ? p.join(getOutputDirectory(), fileMaybe) : null;
 	}
