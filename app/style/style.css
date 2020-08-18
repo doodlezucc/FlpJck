@@ -82,6 +82,9 @@ button:enabled:hover {
 	background: none;
 	color: white;
 }
+button:disabled {
+	opacity: 60%;
+}
 
 .interface {
 	display: flex;
@@ -243,9 +246,6 @@ input:read-only {
 }
 .tools #enqueue {
 	margin: 0;
-}
-.tools #enqueue:disabled {
-	opacity: 60%;
 }
 .tools #remaining {
 	white-space: nowrap;

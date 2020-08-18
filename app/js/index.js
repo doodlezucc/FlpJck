@@ -86,7 +86,7 @@ function regSetSplashScreen(v, callback) {
 
 $(document).ready(function() {
 	//console.log("be ready");
-	$("#execPath").click(function() {
+	registerRenderSetting($("#execPath").click(function() {
 		const dirname = p.dirname($(this).text());
 		const filter = isWin
 			? { name: "Windows Executable", extensions: ["exe"] }
@@ -102,8 +102,8 @@ $(document).ready(function() {
 				? dirname
 				: (isWin ? "C:/Program Files" : "/Applications")
 		});
-	});
-	$("#outDir").click(function() {
+	}));
+	registerRenderSetting($("#outDir").click(function() {
 		openDialog((path) => {
 			setOutputDirectory(path);
 			saveDataSync();
@@ -112,7 +112,7 @@ $(document).ready(function() {
 			title: "Select an output directory",
 			defaultPath: $(this).text()
 		});
-	});
+	}));
 	$("#enqueue").click(function() {
 		flps.forEach((flp) => {
 			if (flp.jq.hasClass("selected") && !flp.jq.hasClass("blacklisted") && !flp.jq.hasClass("enqueued")) {
@@ -134,11 +134,25 @@ $(document).ready(function() {
 		updateMenuBar();
 		saveDataSync();
 	});
-	$("#format").click(function() {
+	registerRenderSetting($("#format").click(function() {
 		nextExtension();
-	});
+	}));
 	RenderTask.setPaused(false);
 });
+
+const renderSettings = [];
+
+function registerRenderSetting(jq) {
+	jq.title = jq.attr("title");
+	renderSettings.push(jq);
+}
+
+function updateRenderSettings() {
+	renderSettings.forEach(jq => {
+		jq.attr("disabled", !!RenderTask.rendering);
+		jq.attr("title", !RenderTask.rendering ? jq.title : "");
+	});
+}
 
 let renderExtension = "mp3";
 
@@ -861,6 +875,7 @@ class RenderTask {
 
 	render() {
 		RenderTask.rendering = this;
+		updateRenderSettings();
 
 		//this.pseudoRender();
 		this.flRender();
@@ -1102,6 +1117,7 @@ class RenderTask {
 		} else {
 			RenderTask.rendering = false;
 		}
+		updateRenderSettings();
 	}
 
 	pseudoRender() {
@@ -1174,6 +1190,7 @@ class RenderTask {
 			if (RenderTask.rendering) {
 				RenderTask.rendering.onPause();
 				RenderTask.rendering = false;
+				updateRenderSettings();
 			} else {
 				RenderTask.isPaused = true;
 			}
