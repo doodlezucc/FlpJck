@@ -998,7 +998,7 @@ class RenderTask {
 					const flSrc = sources.find((src) => src.id === flID);
 					if (flSrc) {
 						const s = flSrc.name;
-						console.log("Window title: " + s);
+						//console.log("Window title: " + s);
 						if (s.includes("/") && s.lastIndexOf("/") > s.length - 5) {
 							// Window title looks something like ......./....
 							// so, probably rendering
@@ -1032,6 +1032,10 @@ class RenderTask {
 								// FL might be messing up right now. smh my head.
 								this.displayTimeout(elapsed, renderingTimeout);
 							}
+						}
+						// When rendering is done, FL window title changes back to "FlpJck.flp - FL Studio 20"
+						if (rendering && s.startsWith("FlpJck")) {
+							this.closeAndFinalise();
 						}
 					}
 				}
@@ -1072,16 +1076,18 @@ class RenderTask {
 			this.outputWatcher = chokidar.watch(this.safeProductPath, {
 				awaitWriteFinish: true
 			});
-			this.outputWatcher.on("change", (path, stats) => {
-				if (stats.size > 0) {
-					if (!RenderTask.isPaused) {
-						this.closeAndFinalise();
-					}
-				}
-			});
-			this.outputWatcher.on("unlink", () => {
-				console.log("hey there, actually unlink");
-			});
+			// this.outputWatcher.on("change", (path, stats) => {
+			// 	console.log("change");
+			// 	if (stats.size > 0 && !RenderTask.isPaused) {
+			// 		this.closeAndFinalise();
+			// 	}
+			// });
+			// this.outputWatcher.on("unlink", () => {
+			// 	console.log("unlink");
+			// 	if (!RenderTask.isPaused) {
+			// 		this.closeAndFinalise();
+			// 	}
+			// });
 
 			if (!this.createInterval()) {
 				return;
