@@ -320,7 +320,7 @@ input:read-only {
 	display: none;
 }
 
-.task:first-child:hover, .task:first-child.context {
+.task:first-child:not(#pausedblock):hover, .task:first-child.context {
 	color: var(--color-highlight);
 }
 
