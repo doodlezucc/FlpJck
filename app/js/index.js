@@ -753,6 +753,9 @@ class RenderTask {
 	 * @type {RenderTask[]}
 	 */
 	static taskQueue = [];
+	/**
+	 * @type {RenderTask}
+	 */
 	static rendering = false;
 	static isPaused = false;
 
@@ -1070,17 +1073,19 @@ class RenderTask {
 		}
 	}
 
-	dead() {
+	dead(cb) {
 		console.log("I diagnose you with dead.");
 		this.success = false;
-		this.closeAndFinalise();
+		this.closeAndFinalise(cb);
 	}
 
-	closeAndFinalise() {
+	closeAndFinalise(cb) {
 		this.setState(States.CLOSE_FL, 0.9);
 		this.closeFL(() => {
 			if (!isWin) {
-				this.finaliseProduct();
+				this.finaliseProduct(cb);
+			} else {
+				if (cb) cb();
 			}
 		}, true);
 	}
@@ -1127,7 +1132,7 @@ class RenderTask {
 		});
 	}
 
-	finaliseProduct() {
+	finaliseProduct(cb) {
 		this.outputWatcher.close();
 		clearInterval(this.interval);
 		if (!RenderTask.isPaused) {
@@ -1135,6 +1140,8 @@ class RenderTask {
 				this.copyProduct(() => {
 					//console.log("copied");
 				});
+			} else if (cb) {
+				return cb();
 			}
 			this.onRenderDone();
 		} else {
@@ -1525,7 +1532,11 @@ function createKeyListener() {
 updateMenuBar();
 createKeyListener();
 
-app.getCurrentWindow().on("blur", () => {
-	console.log(app.getCurrentWindow().isAlwaysOnTop());
-	console.log("blurrr");
-});
+window.onbeforeunload = (e) => {
+	if (RenderTask.rendering) {
+		e.returnValue = false;
+		RenderTask.rendering.dead(() => {
+			app.getCurrentWindow().destroy();
+		});
+	}
+};
