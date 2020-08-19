@@ -776,6 +776,14 @@ class RenderTask {
 						label: "Edit in FL Studio",
 						click: () => this.flp.openInFL()
 					});
+				} else if (RenderTask.rendering == this) {
+					items.push({
+						label: "Remove and blacklist",
+						click: () => {
+							this.flp.setBlacklisted(true);
+							this.remove();
+						}
+					})
 				}
 				displayContextMenu(items, this.jq);
 			})
