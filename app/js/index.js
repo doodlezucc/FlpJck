@@ -932,10 +932,10 @@ class RenderTask {
 
 	prepareFL(callback) {
 		this.setState(States.PREPARE_FL, 0.075);
+		app.getCurrentWindow().setAlwaysOnTop(true);
 		if (flShowSplash != undefined) {
 			callback();
 		} else {
-			app.getCurrentWindow().setAlwaysOnTop(true);
 			if (isWin) {
 				regedit.list(flMidiFormPath, function(err, result) {
 					if (err) {
@@ -1524,3 +1524,8 @@ function createKeyListener() {
 
 updateMenuBar();
 createKeyListener();
+
+app.getCurrentWindow().on("blur", () => {
+	console.log(app.getCurrentWindow().isAlwaysOnTop());
+	console.log("blurrr");
+});
