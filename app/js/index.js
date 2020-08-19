@@ -137,6 +137,9 @@ $(document).ready(function() {
 	registerRenderSetting($("#format").click(function() {
 		nextExtension();
 	}));
+	$("#warning").click(function() {
+		RenderTask.setPaused(true);
+	});
 	RenderTask.setPaused(false);
 });
 
@@ -152,6 +155,11 @@ function updateRenderSettings() {
 		jq.attr("disabled", !!RenderTask.rendering);
 		jq.attr("title", !RenderTask.rendering ? jq.title : "");
 	});
+	updateWarningDisplay();
+}
+
+function updateWarningDisplay() {
+	$("#warning").toggleClass("show", !!RenderTask.rendering);
 }
 
 let renderExtension = "mp3";
@@ -180,7 +188,8 @@ const Visibility = {
 let visibility = Visibility.UNRENDERED;
 function setVisibility(v) {
 	visibility = v;
-	$("#showAll").text(v == Visibility.ALL ? "All projects" : "Unrendered projects");
+	$("#showAll").text((v == Visibility.ALL ? "All" : "Unrendered") + " projects");
+	$("#showAll").attr("title", "Click to show " + (v == Visibility.ALL ? "unrendered" : "all") + " projects");
 	flps.forEach((flp) => flp.applyVisibility(v));
 }
 

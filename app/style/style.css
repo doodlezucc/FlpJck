@@ -42,6 +42,7 @@ body {
 .container-after-titlebar {
 	position: fixed !important;
 	padding: var(--spacing);
+	overflow: hidden !important;
 }
 .action-label {
 	padding: 0 20px 0 0 !important;
@@ -90,6 +91,7 @@ button:disabled {
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+	overflow: hidden;
 }
 
 .bottom-container {
@@ -435,4 +437,35 @@ input:read-only {
 	width: 50%;
 	height: 100%;
 	transition-duration: 0.2s;
+}
+
+#warning {
+	position: absolute;
+	right: -500px;
+	top: 0;
+	margin: 10px;
+	padding: 10px 14px;
+	background-color: var(--gray-dark);
+	border: var(--spacing) solid var(--color-light);
+	border-radius: 5px;
+	display: flex;
+	align-items: center;
+	z-index: 2;
+	cursor: pointer;
+	box-shadow: 0 0 10px #000a;
+	transition: 0.1s;
+}
+#warning.show {
+	right: 0;
+}
+#warning:hover {
+	border-color: var(--color-highlight);
+	background-color: var(--color-dark);
+}
+#warning > i {
+	margin-right: 15px;
+	font-size: 20px;
+}
+#warning .no {
+	color: var(--color-light);
 }
