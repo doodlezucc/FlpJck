@@ -550,7 +550,8 @@ class FLP {
 		multiSelectTable.register(this.jq);
 
 		this.watcher = chokidar.watch(file, {
-			ignoreInitial: true
+			ignoreInitial: true,
+			alwaysStat: true
 		});
 		this.watcher.on("unlink", () => {
 			this.remove();
@@ -1005,6 +1006,7 @@ class RenderTask {
 							if (srcNew.name.startsWith("FL Studio")) {
 								flID = srcNew.id;
 								start = new Date();
+								app.app.focus({ steal: true });
 								//console.log("found you, " + flID);
 							}
 						}
@@ -1024,6 +1026,7 @@ class RenderTask {
 							// so, probably rendering
 							if (!rendering) {
 								rendering = true;
+								app.app.focus({ steal: true });
 								this.setState(States.RENDER, 0.15);
 								start = new Date();
 							}
@@ -1123,6 +1126,10 @@ class RenderTask {
 				"--args", "-Rout", "-E" + renderExtension, this.safePath], {
 				shell: true,
 			});
+			setTimeout(() => {
+				app.app.focus({ steal: true });
+			}, 1000);
+			app.app.focus({ steal: true });
 			if (isWin) {
 				cp.on("close", (code, signal) => {
 					console.log("Exited with code " + code + ", signal " + signal);

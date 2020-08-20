@@ -12,11 +12,12 @@ function createWindow() {
 		width: 850,
 		height: 500,
 		webPreferences: {
-			nodeIntegration: true
+			nodeIntegration: true,
+			enableRemoteModule: true
 		},
 		frame: !isWin,
 		titleBarStyle: isWin ? "default" : "hidden",
-		icon: "app/style/icon/icon.ico",
+		icon: "app/style/icon/icon.png",
 		show: false
 	});
 
