@@ -209,6 +209,11 @@ function addSrcDir(deep) {
 	});
 }
 
+function forceFocus() {
+	app.getCurrentWindow().focus();
+	app.app.focus({ steal: true });
+}
+
 class MultiSelectTable {
 	constructor() {
 		this.jq = $(".rows");
@@ -1006,7 +1011,7 @@ class RenderTask {
 							if (srcNew.name.startsWith("FL Studio")) {
 								flID = srcNew.id;
 								start = new Date();
-								app.app.focus({ steal: true });
+								forceFocus();
 								//console.log("found you, " + flID);
 							}
 						}
@@ -1026,7 +1031,7 @@ class RenderTask {
 							// so, probably rendering
 							if (!rendering) {
 								rendering = true;
-								app.app.focus({ steal: true });
+								forceFocus();
 								this.setState(States.RENDER, 0.15);
 								start = new Date();
 							}
@@ -1127,9 +1132,8 @@ class RenderTask {
 				shell: true,
 			});
 			setTimeout(() => {
-				app.app.focus({ steal: true });
+				forceFocus();
 			}, 1000);
-			app.app.focus({ steal: true });
 			if (isWin) {
 				cp.on("close", (code, signal) => {
 					console.log("Exited with code " + code + ", signal " + signal);
