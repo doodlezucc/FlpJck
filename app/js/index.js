@@ -519,11 +519,11 @@ class FLP {
 				multiSelectTable.onclick(this.jq);
 				const inQueue = this.jq.hasClass("enqueued");
 				displayContextMenu([{
-					label: "Enqueue",
+					label: "Render",
 					click: () => this.enqueue(),
 					visible: !inQueue
 				}, {
-					label: "Enqueue at first position",
+					label: "Render next",
 					click: () => this.enqueue(true),
 					visible: !inQueue
 				}, {
@@ -1478,7 +1478,7 @@ function updateMenuBar() {
 				type: "separator"
 			},
 			{
-				label: "Render/Enqueue selected",
+				label: "Render",
 				click: () => {
 					$("#enqueue").click();
 				},
@@ -1486,7 +1486,7 @@ function updateMenuBar() {
 				enabled: enableSelect
 			},
 			{
-				label: "(Un-)Blacklist selected",
+				label: "(Un-)Blacklist",
 				click: () => {
 					multiSelectTable.toggleBlacklist();
 				},
