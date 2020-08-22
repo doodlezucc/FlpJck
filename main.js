@@ -3,6 +3,7 @@ const el = require("electron");
 // Enable live reload for all the files inside your project directory
 require("electron-reload")(__dirname);
 
+const isDev = require("electron-is-dev");
 const isWin = process.platform === "win32";
 
 function createWindow() {
@@ -17,7 +18,7 @@ function createWindow() {
 		},
 		frame: !isWin,
 		titleBarStyle: isWin ? "default" : "hidden",
-		icon: "app/style/icon/icon.png",
+		icon: isDev ? "app/style/icon/icon.png" : undefined,
 		show: false
 	});
 
