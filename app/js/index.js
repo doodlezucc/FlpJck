@@ -114,13 +114,7 @@ $(document).ready(function() {
 		});
 	}));
 	$("#enqueue").click(function() {
-		flps.forEach((flp) => {
-			if (flp.jq.hasClass("selected") && !flp.jq.hasClass("blacklisted") && !flp.jq.hasClass("enqueued")) {
-				flp.enqueue(false, true);
-			}
-		});
-		multiSelectTable.clearSelection();
-		$(this).prop("disabled", true);
+		multiSelectTable.enqueueSelected(false);
 	});
 	$(".file-container").click(function(e) {
 		if (e.target.tagName === "TABLE") {
@@ -315,6 +309,16 @@ class MultiSelectTable {
 
 	selectAllUnrendered() {
 		multiSelectTable.selectMatching((flp) => !flp.upToDate && !flp.isBlacklisted());
+	}
+
+	enqueueSelected(important) {
+		for (let i = 0; i < flps.length; i++) {
+			let flp = flps[important ? (flps.length - i - 1) : i];
+			if (flp.jq.hasClass("selected") && !flp.jq.hasClass("blacklisted") && !flp.jq.hasClass("enqueued")) {
+				flp.enqueue(important, true);
+			}
+		}
+		multiSelectTable.clearSelection();
 	}
 
 	gatherSelected() {
@@ -516,33 +520,39 @@ class FLP {
 		this.jq = $("<tr/>")
 			.addClass("file hidden")
 			.on("contextmenu", (e) => {
-				multiSelectTable.onclick(this.jq);
-				const inQueue = this.jq.hasClass("enqueued");
+				let inQueue = this.jq.hasClass("enqueued");
+				let multiple = false;
+				if (inQueue || !this.jq.hasClass("selected")) {
+					multiSelectTable.onclick(this.jq);
+				} else if (multiSelectTable.jq.children(".selected").length > 1) {
+					multiple = true;
+				}
 				displayContextMenu([{
 					label: "Render",
-					click: () => this.enqueue(),
+					click: () => multiSelectTable.enqueueSelected(false),
 					visible: !inQueue
 				}, {
 					label: "Render next",
-					click: () => this.enqueue(true),
+					click: () => multiSelectTable.enqueueSelected(true),
 					visible: !inQueue
 				}, {
 					label: "Remove from queue",
 					click: () => this.task.remove(),
-					visible: inQueue
+					visible: !multiple && inQueue
 				}, {
 					type: "separator"
 				}, {
-					label: this.isBlacklisted() ? "Whitelist" : "Blacklist",
-					click: () => this.setBlacklisted(!this.isBlacklisted(), false)
+					label: multiple ? "(Un-)Blacklist" : (this.isBlacklisted() ? "Whitelist" : "Blacklist"),
+					click: () => multiSelectTable.toggleBlacklist()
 				}, {
-					label: "Mark as " + (this.upToDate ? "un" : "") + "rendered",
-					click: () => this.forceRenderedState(!this.upToDate, false),
-					enabled: !this.task
+					label: "Mark as " + (multiple ? "(un-)" : (this.upToDate ? "un" : "")) + "rendered",
+					click: () => multiSelectTable.toggleRenderedState(),
+					enabled: multiple || !this.task
 				}, {
 					label: "Edit in FL Studio",
 					click: () => this.openInFL(),
-					enabled: !RenderTask.rendering
+					enabled: !RenderTask.rendering,
+					visible: !multiple
 				}], this.jq);
 			})
 			.append($("<td/>").text(this.fileName))
@@ -833,7 +843,8 @@ class RenderTask {
 
 		const container = $(".task-container");
 		if (important) {
-			RenderTask.taskQueue.unshift(this);
+			let length = RenderTask.taskQueue.unshift(this);
+			console.log(flp.fileName + " | " + length);
 			if (container.children().length > 1) {
 				container.children().not("#pausedblock").first().before(this.jq);
 			} else {
@@ -1188,6 +1199,7 @@ class RenderTask {
 	}
 
 	static checkQueue() {
+		console.log("Check queue, rendering? " + !!this.rendering);
 		if (!this.rendering) {
 			if (this.taskQueue.length && !this.isPaused) {
 				const next = this.taskQueue.shift();
