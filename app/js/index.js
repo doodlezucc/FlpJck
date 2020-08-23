@@ -1009,6 +1009,12 @@ class RenderTask {
 			}
 		}
 
+		window.onblur = () => {
+			setTimeout(() => {
+				forceFocus();
+			}, 10);
+		}
+
 		this.interval = setInterval(() => {
 			el.desktopCapturer.getSources({
 				types: ["window"],
@@ -1030,12 +1036,6 @@ class RenderTask {
 							if (srcNew.name.startsWith("FL Studio")) {
 								flID = srcNew.id;
 								start = new Date();
-								forceFocus();
-								setTimeout(() => {
-									if (!rendering) {
-										forceFocus();
-									}
-								}, 1000);
 								//console.log("found you, " + flID);
 							}
 						}
@@ -1055,7 +1055,7 @@ class RenderTask {
 							// so, probably rendering
 							if (!rendering) {
 								rendering = true;
-								forceFocus();
+								window.onblur = null;
 								this.setState(States.RENDER, 0.15);
 								start = new Date();
 							}
@@ -1158,6 +1158,7 @@ class RenderTask {
 	finaliseProduct(cb) {
 		this.outputWatcher.close();
 		clearInterval(this.interval);
+		window.onblur = null;
 		if (!RenderTask.isPaused) {
 			if (this.success) {
 				this.copyProduct(() => {
