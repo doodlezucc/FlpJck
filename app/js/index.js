@@ -745,7 +745,7 @@ class FLP {
 	}
 
 	openInFL() {
-		app.shell.openItem(this.file);
+		app.shell.openPath(this.file);
 	}
 }
 
