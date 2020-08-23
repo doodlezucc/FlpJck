@@ -220,9 +220,12 @@ class MultiSelectTable {
 		row.click((e) => this.onclick(row, e));
 	}
 
+	willBlacklist() {
+		return this.jq.children(".selected").not(".blacklisted").length > 0;
+	}
+
 	toggleBlacklist() {
-		const doBlacklist = this.jq.children(".selected").not(".blacklisted").length;
-		this.setBlacklisted(doBlacklist);
+		this.setBlacklisted(this.willBlacklist());
 	}
 
 	toggleRenderedState() {
@@ -525,14 +528,15 @@ class FLP {
 				} else if (multiSelectTable.jq.children(".selected").length > 1) {
 					multiple = true;
 				}
+				let willBlacklist = multiSelectTable.willBlacklist();
 				displayContextMenu([{
 					label: "Render",
 					click: () => multiSelectTable.enqueueSelected(false),
-					visible: !inQueue
+					enabled: willBlacklist && !inQueue
 				}, {
 					label: "Render next",
 					click: () => multiSelectTable.enqueueSelected(true),
-					visible: !inQueue
+					enabled: willBlacklist && !inQueue
 				}, {
 					label: "Remove from queue",
 					click: () => this.task.remove(),
@@ -540,7 +544,7 @@ class FLP {
 				}, {
 					type: "separator"
 				}, {
-					label: multiple ? "(Un-)Blacklist" : (this.isBlacklisted() ? "Whitelist" : "Blacklist"),
+					label: (multiple ? !willBlacklist : this.isBlacklisted()) ? "Whitelist" : "Blacklist",
 					click: () => multiSelectTable.toggleBlacklist()
 				}, {
 					label: "Mark as " + (multiple ? "(un-)" : (this.upToDate ? "un" : "")) + "rendered",
@@ -1475,7 +1479,7 @@ function updateMenuBar() {
 				label: "Select all",
 				enabled: visibility == Visibility.ALL,
 				click: () => {
-					multiSelectTable.selectMatching((flp) => !flp.isBlacklisted());
+					multiSelectTable.selectMatching(() => true);
 				},
 				accelerator: "CmdOrCtrl+Shift+A"
 			},
