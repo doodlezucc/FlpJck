@@ -19,25 +19,23 @@ const isWin = process.platform === "win32";
 const extension = ".flp";
 
 
+let timeouts = {
+	// How long FL Studio may load a project (in seconds).
+	//
+	// This can be useful when there are missing samples or demo version plugins inside a project.
+	// In that case, FL Studio displays a dialog to the user and refuses to render automatically.
+	// After the timer has run out, FlpJck sends a terminate signal to Fruity Loops.
+	loading: 120,
 
-
-// How long FL Studio may load a project (in seconds).
-//
-// This can be useful when there are missing samples or demo version plugins inside a project.
-// In that case, FL Studio displays a dialog to the user and refuses to render automatically.
-// After the timer has run out, FlpJck sends a terminate signal to Fruity Loops.
-const loadingTimeout = 120;
-
-// How long FL Studio may render a single project (in seconds).
-//
-// This can be useful if, for some reason, FL Studio
-// messes up the rendering process of one of your projects.
-//
-// The timer starts as soon as FL Studio is done loading the project.
-// After the timer has run out, FlpJck sends a terminate signal to Fruity Loops.
-const renderingTimeout = 60 * 45;
-
-
+	// How long FL Studio may render a single project (in seconds).
+	//
+	// This can be useful if, for some reason, FL Studio
+	// messes up the rendering process of one of your projects.
+	//
+	// The timer starts as soon as FL Studio is done loading the project.
+	// After the timer has run out, FlpJck sends a terminate signal to Fruity Loops.
+	rendering: 60 * 45
+}
 
 
 const titleBar = new customTitlebar.Titlebar({
@@ -1062,15 +1060,15 @@ class RenderTask {
 						}
 						else if (!rendering && isWin) {
 							// FL is loading the project
-							if (this.success && elapsed >= loadingTimeout - 10) {
+							if (this.success && elapsed >= timeouts.loading - 10) {
 								// FL might be stuck, are samples or plugins missing?
-								this.displayTimeout(elapsed, loadingTimeout);
+								this.displayTimeout(elapsed, timeouts.loading);
 							}
 						}
 						if (rendering || !isWin) {
-							if (this.success && elapsed >= renderingTimeout - 60 * 5) {
+							if (this.success && elapsed >= timeouts.rendering - 60 * 5) {
 								// FL might be messing up right now. smh my head.
-								this.displayTimeout(elapsed, renderingTimeout);
+								this.displayTimeout(elapsed, timeouts.rendering);
 							}
 						}
 						// When rendering is done, FL window title changes back to "FlpJck.flp - FL Studio 20"
@@ -1323,6 +1321,7 @@ function saveDataSync() {
 			execPath: getExecPath(),
 			outDir: getOutputDirectory(),
 			format: renderExtension,
+			timeouts: timeouts,
 			directories: directories.map((d) => {
 				return {
 					path: d.path,
@@ -1359,6 +1358,7 @@ function loadData() {
 		setExtension(userData.format || "mp3");
 		setOutputDirectory(userData.outDir);
 		blacklist = userData.blacklist;
+		timeouts = userData.timeouts ?? timeouts;
 
 		for (const key in userData.renderings) {
 			const r = userData.renderings[key];
