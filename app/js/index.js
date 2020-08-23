@@ -845,8 +845,9 @@ class RenderTask {
 		if (important) {
 			let length = RenderTask.taskQueue.unshift(this);
 			console.log(flp.fileName + " | " + length);
-			if (container.children().length > 1) {
-				container.children().not("#pausedblock").first().before(this.jq);
+			const jqTasks = container.children();
+			if (jqTasks.length > 0) {
+				jqTasks.first().after(this.jq);
 			} else {
 				container.append(this.jq);
 			}
@@ -1199,7 +1200,6 @@ class RenderTask {
 	}
 
 	static checkQueue() {
-		console.log("Check queue, rendering? " + !!this.rendering);
 		if (!this.rendering) {
 			if (this.taskQueue.length && !this.isPaused) {
 				const next = this.taskQueue.shift();
@@ -1412,7 +1412,8 @@ function onClickAbout() {
 	const height = 200;
 	const win = new BrowserWindow({
 		webPreferences: {
-			nodeIntegration: true
+			nodeIntegration: true,
+			enableRemoteModule: true
 		},
 		frame: !isWin,
 		titleBarStyle: isWin ? "default" : "hidden",
