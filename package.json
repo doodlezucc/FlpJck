@@ -15,8 +15,7 @@
 		"appId": "me.fellowhead.flpjck",
 		"productName": "FlpJck",
 		"win": {
-			"icon": "app/style/icon/icon.ico",
-			"target": "portable"
+			"icon": "app/style/icon/icon.ico"
 		},
 		"mac": {
 			"category": "public.app-category.utilities",
