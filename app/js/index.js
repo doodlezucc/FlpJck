@@ -228,15 +228,17 @@ class MultiSelectTable {
 		this.setBlacklisted(this.willBlacklist());
 	}
 
-	toggleRenderedState() {
-		let doSetRendered = false;
+	willSetRendered() {
 		for (let flp of flps) {
 			if (flp.jq.hasClass("selected") && !flp.upToDate) {
-				doSetRendered = true;
-				continue;
+				return true;
 			}
 		}
-		this.forceRenderedState(doSetRendered);
+		return false;
+	}
+
+	toggleRenderedState() {
+		this.forceRenderedState(this.willSetRendered());
 	}
 
 	flpAction(action) {
@@ -547,7 +549,7 @@ class FLP {
 					label: (multiple ? !willBlacklist : this.isBlacklisted()) ? "Whitelist" : "Blacklist",
 					click: () => multiSelectTable.toggleBlacklist()
 				}, {
-					label: "Mark as " + (multiple ? "(un-)" : (this.upToDate ? "un" : "")) + "rendered",
+					label: "Mark as " + ((multiple ? !multiSelectTable.willSetRendered() : this.upToDate) ? "un" : "") + "rendered",
 					click: () => multiSelectTable.toggleRenderedState(),
 					enabled: multiple || !this.task
 				}, {
@@ -714,20 +716,23 @@ class FLP {
 	}
 
 	forceRenderedState(v, skipSave) {
+		let changed = false;
 		if (v && !this.upToDate) {
 			renderings.set(this.file, new Rendering(null, new Date()));
-			this.updateRenderDisplay();
 			if (visibility == Visibility.UNRENDERED) {
 				this.jq.removeClass("selected");
 			}
+			changed = true;
 		} else if (!v) {
-			renderings.delete(this.file);
-			this.updateRenderDisplay();
+			changed = renderings.delete(this.file);
 		}
 
-		if (!skipSave) {
-			multiSelectTable.gatherSelected();
-			saveDataSync();
+		if (changed) {
+			this.updateRenderDisplay();
+			if (!skipSave) {
+				multiSelectTable.gatherSelected();
+				saveDataSync();
+			}
 		}
 	}
 
@@ -1026,6 +1031,11 @@ class RenderTask {
 								flID = srcNew.id;
 								start = new Date();
 								forceFocus();
+								setTimeout(() => {
+									if (!rendering) {
+										forceFocus();
+									}
+								}, 1000);
 								//console.log("found you, " + flID);
 							}
 						}
@@ -1120,18 +1130,6 @@ class RenderTask {
 			this.outputWatcher = chokidar.watch(this.safeProductPath, {
 				awaitWriteFinish: true
 			});
-			// this.outputWatcher.on("change", (path, stats) => {
-			// 	console.log("change");
-			// 	if (stats.size > 0 && !RenderTask.isPaused) {
-			// 		this.closeAndFinalise();
-			// 	}
-			// });
-			// this.outputWatcher.on("unlink", () => {
-			// 	console.log("unlink");
-			// 	if (!RenderTask.isPaused) {
-			// 		this.closeAndFinalise();
-			// 	}
-			// });
 
 			if (!this.createInterval()) {
 				return;
@@ -1552,6 +1550,8 @@ function createKeyListener() {
 				app.getCurrentWebContents().openDevTools();
 			} else if (ev.key === "p") {
 				togglePaused();
+			} else if (ev.key === "s" && RenderTask.rendering) {
+				RenderTask.rendering.remove();
 			}
 		}
 	});
