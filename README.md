@@ -3,14 +3,14 @@
 ### An [FL Studio](https://www.image-line.com/) render sync tool!
 FlpJck keeps track of when Fruity Loops projects were last rendered. Whenever you change a project or create a new one, it appears as a green list item. This means that your project has an outdated audio file equivalent (or none at all). By adding list items to the queue, they get rendered one after another.
 
-![Screenshot](screenshot.png?raw=true)
-*Screenshot of FlpJck in action, rendering files one by one*
-
 ### First time?
 How to get started:
 - [Download](https://github.com/FellowHead/FlpJck/releases) and install FlpJck
 - Add directories containing Fruity Loops project files (*.flp)
 - Select some files from the list and click `Render` on the right
+
+![Screenshot](screenshot.png?raw=true)
+*Screenshot of FlpJck in action, rendering files one by one*
 
 ### Tested on
 - Windows 10 using FL Studio 20
