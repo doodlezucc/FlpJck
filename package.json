@@ -46,7 +46,7 @@
 		"fs": "0.0.1-security",
 		"jquery": "^3.5.0",
 		"mac-screen-capture-permissions": "^1.1.0",
-		"minimist": "^1.2.3",
+		"minimist": "^1.2.6",
 		"path": "^0.12.7",
 		"regedit": "^3.0.3"
 	},
